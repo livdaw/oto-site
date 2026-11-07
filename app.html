@@ -470,7 +470,11 @@
       const d = await r.json();
       const a = document.createElement("a"); a.href = CFG.url + "/storage/v1" + d.signedURL + "&download=oto-extension.zip"; a.rel = "noopener";
       document.body.appendChild(a); a.click(); a.remove(); toast("Downloading…");
+      logDownload(s, "0.1.0");
     } catch (e) { toast("Download isn't available yet."); }
+  }
+  async function logDownload(s, version) {
+    try { await fetch(CFG.url + "/rest/v1/downloads", { method: "POST", headers: Object.assign(H(s.access_token), { Prefer: "return=minimal" }), body: JSON.stringify({ email: s.email, version, ts: Date.now() }) }); } catch (e) { /* table not set up yet — ignore */ }
   }
   $("dlExt").addEventListener("click", downloadExtension);
   $("search").addEventListener("input", renderNotes);
