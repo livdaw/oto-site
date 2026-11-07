@@ -63,7 +63,11 @@
   .theme:hover { color: var(--muted); }
 
   /* tabs */
-  .tabs { display: flex; gap: 22px; margin-top: 22px; border-bottom: 1px solid var(--line); }
+  .tabbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin-top: 22px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tabs { display: flex; gap: 22px; }
+  .getext { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 6px 13px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
+  .getext:hover { border-color: var(--blue); color: var(--blue); }
+  .getext svg { height: 15px; width: 15px; display: block; flex: none; }
   .tabs button { all: unset; cursor: pointer; font-size: 15px; font-weight: 500; color: var(--muted); padding: 0 0 12px; position: relative; }
   .tabs button[aria-current="true"] { color: var(--ink); }
   .tabs button[aria-current="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--blue); border-radius: 2px; }
@@ -122,7 +126,15 @@
   .sub { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin: 14px 0 0; }
   .list { margin-top: 2px; }
   .note { position: relative; padding: 16px 0; border-top: 1px solid var(--line); }
-  .list .note:first-child { border-top: 0; }
+  .list > .note:first-child { border-top: 0; }
+  .block-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 16px; padding: 0 16px 6px; margin: 16px 0; }
+  .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 0 11px; border-bottom: 1px solid var(--line); }
+  .block-name { border: 0; background: transparent; color: var(--ink); font-family: var(--serif); font-size: 17px; font-weight: 500; padding: 2px 0; min-width: 0; flex: 1; }
+  .block-name::placeholder { color: var(--faint); font-style: italic; }
+  .block-name:focus { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+  .block-when { font-family: var(--mono); font-size: 11px; color: var(--faint); white-space: nowrap; }
+  .block-notes .note { border-top: 1px solid var(--line); }
+  .block-notes .note:first-child { border-top: 0; }
   .note .when { font-family: var(--mono); font-size: 11px; color: var(--faint); }
   .note .text { font-family: var(--serif); font-size: 18px; line-height: 1.5; margin-top: 5px; padding-right: 54px; cursor: text; }
   .note .tag { display: inline-block; margin-top: 10px; font-size: 10.5px; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
@@ -161,6 +173,8 @@
   .modal-card { background: var(--surface); color: var(--ink); border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 18px 50px rgba(0,0,0,.22); }
   .modal-card h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 22px; }
   .modal-lede { font-size: 14px; color: var(--muted); line-height: 1.55; margin: 10px 0 0; }
+  .modal-note { font-size: 12px; color: var(--faint); line-height: 1.5; margin: 12px 0 0; }
+  .modal-note code { font-family: var(--mono); font-size: 11px; background: var(--surface-2); padding: 1px 4px; border-radius: 4px; }
   .agree { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; color: var(--ink); margin: 16px 0 0; cursor: pointer; }
   .agree input { margin-top: 3px; flex: none; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
@@ -198,10 +212,17 @@
     <div class="tools"><button class="theme" id="theme" title="Toggle theme" aria-label="Toggle theme">◐</button></div>
   </div>
 
-  <div class="tabs" id="tabs">
-    <button data-tab="today" aria-current="true">Today</button>
-    <button data-tab="notebook" aria-current="false">Thoughts</button>
-    <button data-tab="settings" aria-current="false">Settings</button>
+  <div class="tabbar">
+    <div class="tabs" id="tabs">
+      <button data-tab="today" aria-current="true">Today</button>
+      <button data-tab="notebook" aria-current="false">Thoughts</button>
+      <button data-tab="settings" aria-current="false">Settings</button>
+    </div>
+    <button class="getext" id="dlExt" title="Download the oto browser extension for Chrome or Edge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.3"/><path d="M12 8.7h8.5M9 13.5l-4.3 7.4M15 13.5l-4.3 7.4"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.6 14A7.5 7.5 0 0 1 19 8.8a5.4 5.4 0 0 0-9.3 3.9c0 3.6 3.2 5.7 6.5 5.7A7.5 7.5 0 0 1 4.6 14z"/></svg>
+      Get extension
+    </button>
   </div>
 
   <!-- TODAY -->
@@ -255,6 +276,8 @@
     <div class="controls">
       <input type="text" class="search" id="search" placeholder="Search your thoughts…">
       <select id="fTag"><option value="">All tags</option></select>
+      <select id="fDay"><option value="">Any day</option></select>
+      <select id="fBlock"><option value="">Any block</option></select>
       <button class="copyall" id="copyAll"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy all</button>
     </div>
     <div class="sub" id="count"></div>
@@ -266,8 +289,6 @@
   <section class="panel" id="settings" hidden>
     <div class="srow"><span class="k">Signed in as</span><span class="v" id="acct"></span></div>
     <div class="srow"><span class="k">Account</span><button class="out" id="signOut">Sign out</button></div>
-    <div class="srow"><span class="k">Browser extension</span><button class="out" id="dlExt">Download · v0.1.0</button></div>
-    <p class="snote">Unzip it, then open <code>chrome://extensions</code> or <code>edge://extensions</code>, turn on <strong>Developer mode</strong>, and choose <strong>Load unpacked</strong> → the unzipped folder. It signs in with this same account.</p>
     <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your thoughts and today's reflection, synced to your account.</p>
   </section>
 </div>
@@ -277,6 +298,7 @@
     <h3>Before you download</h3>
     <p class="modal-lede">oto is a private, invite-only beta. By downloading you agree to keep it — and the idea behind it — confidential, and not to copy, redistribute, or reuse it to build something similar.</p>
     <label class="agree"><input type="checkbox" id="agreeChk"> I've read and agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy policy</a>.</label>
+    <p class="modal-note">After it downloads: unzip, open <code>chrome://extensions</code> or <code>edge://extensions</code>, turn on Developer mode, and choose "Load unpacked" → the unzipped folder.</p>
     <div class="modal-actions"><button class="ghost" id="termsCancel">Cancel</button><button class="primary" id="termsAgree" disabled>Agree &amp; download</button></div>
   </div>
 </div>
@@ -304,6 +326,8 @@
     return (await r.json())[0];
   }
   async function getUsage(token, day) { try { const r = await fetch(CFG.url + "/rest/v1/usage?day=eq." + day + "&select=seconds,prompts,downtime,by_host,streak&limit=1", { headers: H(token) }); if (!r.ok) return null; const rows = await r.json(); return rows[0] || null; } catch (e) { return null; } }
+  async function listBlocks(token) { try { const r = await fetch(CFG.url + "/rest/v1/blocks?select=block_start,name", { headers: H(token) }); if (!r.ok) return []; return r.json(); } catch (e) { return []; } }
+  async function upsertBlockName(token, block_start, name) { const r = await fetch(CFG.url + "/rest/v1/blocks", { method: "POST", headers: Object.assign(H(token), { Prefer: "resolution=merge-duplicates,return=minimal" }), body: JSON.stringify({ block_start, name }) }); if (!r.ok) throw new Error("block save failed"); }
 
   const getSess = () => { try { return JSON.parse(localStorage.getItem("oto_web_session") || "null"); } catch (e) { return null; } };
   const setSess = (s) => { try { localStorage.setItem("oto_web_session", JSON.stringify(s)); } catch (e) {} };
@@ -329,7 +353,7 @@
   const promptFrom = (t) => `My own starting thought:\n"${t}"\n\nBuild on this as my premise — pressure-test it, extend it, and show me where it's weakest. Don't replace my thinking.`;
 
   const fmtClock = (ts) => { const d = new Date(Number(ts)); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
-  let notes = [], tags = [], session = null, usage = null, editingId = null;
+  let notes = [], tags = [], session = null, usage = null, editingId = null, blockNames = {};
 
   function showLogin() { $("login").hidden = false; $("app").hidden = true; }
   function showApp(s) { $("login").hidden = true; $("app").hidden = false; $("acct").textContent = s.email || ""; }
@@ -345,10 +369,12 @@
 
   async function loadNotes() {
     try {
-      notes = (await listNotes(session.access_token)).map((n) => ({ id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts), edited_at: n.edited_at ? Number(n.edited_at) : null }));
+      const [raw, blockRows] = await Promise.all([listNotes(session.access_token), listBlocks(session.access_token)]);
+      notes = raw.map((n) => ({ id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts), block_start: n.block_start != null ? Number(n.block_start) : null, edited_at: n.edited_at ? Number(n.edited_at) : null }));
+      blockNames = {}; blockRows.forEach((b) => { if (b.name) blockNames[String(b.block_start)] = b.name; });
       tags = []; const seen = new Set();
       notes.forEach((n) => { if (n.tag && !seen.has(n.tag)) { seen.add(n.tag); tags.push(n.tag); } });
-      buildTagUI(); renderNotes(); renderToday();
+      buildFilters(); renderNotes(); renderToday();
     } catch (e) { clearSess(); showLogin(); }
   }
   async function loadUsage() {
@@ -387,10 +413,21 @@
     }
   }
 
-  function buildTagUI() {
+  function buildFilters() {
+    const curTag = $("fTag").value, curDay = $("fDay").value, curBlock = $("fBlock").value;
     $("fTag").innerHTML = '<option value="">All tags</option>' + tags.map((t) => `<option>${esc(t)}</option>`).join("");
+    const days = [], seenD = new Set();
+    notes.forEach((n) => { const k = dayKey(new Date(n.ts)); if (!seenD.has(k)) { seenD.add(k); days.push({ k, ts: n.ts }); } });
+    $("fDay").innerHTML = '<option value="">Any day</option>' + days.map((d) => `<option value="${d.k}">${esc(dayLabel(d.ts))}</option>`).join("");
+    const blocks = [], seenB = new Set();
+    notes.forEach((n) => { if (n.block_start && !seenB.has(n.block_start)) { seenB.add(n.block_start); blocks.push(n.block_start); } });
+    blocks.sort((a, b) => b - a);
+    $("fBlock").innerHTML = '<option value="">Any block</option>' + blocks.map((b) => `<option value="${b}">${esc(blockLabel(b))}</option>`).join("") + (blocks.length ? '<option value="none">Outside a block</option>' : "");
+    $("fTag").value = curTag; $("fDay").value = curDay; $("fBlock").value = curBlock;
     renderChips();
   }
+  function dayLabel(ts) { const d = new Date(Number(ts)), k = dayKey(d); if (k === dayKey(new Date())) return "Today"; if (k === dayKey(new Date(Date.now() - 86400000))) return "Yesterday"; return `${d.getDate()} ${MONTHS[d.getMonth()]}`; }
+  function blockLabel(bs) { return blockNames[String(bs)] || fmtDate(bs); }
   function renderChips() {
     ["tChips", "nChips"].forEach((id) => {
       const wrap = $(id); const ts = tags.slice(0, 8);
@@ -401,8 +438,15 @@
 
   function visible() {
     const q = $("search").value.trim().toLowerCase();
-    const tag = $("fTag").value;
-    return notes.filter((n) => (!tag || n.tag === tag) && (!q || n.text.toLowerCase().includes(q)));
+    const tag = $("fTag").value, day = $("fDay").value, block = $("fBlock").value;
+    return notes.filter((n) => {
+      if (tag && n.tag !== tag) return false;
+      if (day && dayKey(new Date(n.ts)) !== day) return false;
+      if (block === "none" && n.block_start) return false;
+      if (block && block !== "none" && String(n.block_start) !== block) return false;
+      if (q && !n.text.toLowerCase().includes(q)) return false;
+      return true;
+    });
   }
   function renderNotes() {
     const v = visible();
@@ -410,7 +454,32 @@
     $("empty").hidden = v.length > 0;
     $("empty").textContent = notes.length === 0 ? "Nothing here yet." : "Nothing matches that.";
     $("copyAll").hidden = v.length === 0;
-    $("list").innerHTML = v.map((n) => n.id === editingId ? editForm(n) : noteView(n)).join("");
+    let html = "", i = 0;
+    while (i < v.length) {
+      const n = v[i];
+      if (n.block_start) {
+        const bs = n.block_start, group = [];
+        while (i < v.length && v[i].block_start === bs) { group.push(v[i]); i++; }
+        html += blockCard(bs, group);
+      } else { html += (n.id === editingId ? editForm(n) : noteView(n)); i++; }
+    }
+    $("list").innerHTML = html;
+  }
+  function blockCard(bs, group) {
+    const nm = blockNames[String(bs)] || "";
+    return `<div class="block-card" data-block="${bs}">
+      <div class="block-head">
+        <input class="block-name" data-block="${bs}" value="${esc(nm)}" placeholder="Name this block" aria-label="Name this thinking block">
+        <span class="block-when">${esc(fmtDate(bs))} · ${group.length} ${group.length === 1 ? "thought" : "thoughts"}</span>
+      </div>
+      <div class="block-notes">${group.map((n) => n.id === editingId ? editForm(n) : noteView(n)).join("")}</div>
+    </div>`;
+  }
+  async function saveBlockName(bs, name) {
+    blockNames[String(bs)] = name;
+    const opt = [...$("fBlock").options].find((o) => o.value === String(bs)); if (opt) opt.textContent = name || fmtDate(bs);
+    try { await upsertBlockName(session.access_token, Number(bs), name); toast(name ? "Block named." : "Name cleared."); }
+    catch (e) { toast("Couldn't save the block name."); }
   }
   function noteView(n) {
     return `
@@ -443,7 +512,7 @@
       await updateNote(session.access_token, id, { text, tag, edited_at });
       n.text = text; n.tag = tag; n.edited_at = edited_at; editingId = null;
       tags = []; const seen = new Set(); notes.forEach((x) => { if (x.tag && !seen.has(x.tag)) { seen.add(x.tag); tags.push(x.tag); } });
-      buildTagUI(); renderNotes(); renderToday(); toast("Saved.");
+      buildFilters(); renderNotes(); renderToday(); toast("Saved.");
     } catch (e) { toast("Couldn't save — try again."); }
   }
 
@@ -455,8 +524,8 @@
     el.value = ""; tagEl.value = "";
     try {
       const row = await insertNote(session.access_token, { text, tag, ts });
-      notes.unshift({ id: (row && row.id) || ts, text, tag, ts });
-      if (tag && !tags.includes(tag)) { tags.unshift(tag); buildTagUI(); }
+      notes.unshift({ id: (row && row.id) || ts, text, tag, ts, block_start: null });
+      if (tag && !tags.includes(tag)) { tags.unshift(tag); buildFilters(); }
       renderNotes(); renderToday(); toast("Kept.");
     } catch (e) { toast("Couldn't save — try again."); el.value = text; }
   }
@@ -510,6 +579,9 @@
   $("termsAgree").addEventListener("click", () => { if (!agreeChk.checked) return; closeTerms(); downloadExtension(); });
   $("search").addEventListener("input", renderNotes);
   $("fTag").addEventListener("change", renderNotes);
+  $("fDay").addEventListener("change", renderNotes);
+  $("fBlock").addEventListener("change", renderNotes);
+  $("list").addEventListener("change", (e) => { const inp = e.target.closest(".block-name"); if (inp) saveBlockName(inp.dataset.block, inp.value.trim()); });
   $("tSend").addEventListener("click", () => keep("tText", "tTag"));
   $("nSend").addEventListener("click", () => keep("nText", "nTag"));
   function enterKeep(textId, tagId) { return (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); keep(textId, tagId); } }; }
