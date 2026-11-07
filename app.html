@@ -26,12 +26,12 @@
   body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
   [hidden] { display: none !important; }
   .wordmark { display: block; color: var(--ink); }
-  /* the face in oto blinks */
-  .wordmark .eye { animation: otoOpen 5.2s infinite; }
-  .wordmark .lid { opacity: 0; animation: otoShut 5.2s infinite; }
-  @keyframes otoOpen { 0%,91%{opacity:1} 92.5%,95.5%{opacity:0} 97%,100%{opacity:1} }
-  @keyframes otoShut { 0%,91%{opacity:0} 92.5%,95.5%{opacity:1} 97%,100%{opacity:0} }
-  @media (prefers-reduced-motion: reduce) { .wordmark .eye { animation: none; opacity: 1; } .wordmark .lid { display: none; } }
+  /* the face in oto blinks — driven by JS for a natural, random rhythm (matches popup) */
+  .wordmark .eye, .wordmark .lid { transition: opacity .12s ease; }
+  .wordmark .lid { opacity: 0; }
+  .wordmark.blink .eye { opacity: 0; }
+  .wordmark.blink .lid { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .wordmark .eye, .wordmark .lid { transition: none; } .wordmark .lid { display: none; } }
 
   /* login */
   .login { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
@@ -414,6 +414,15 @@
     const v = visible(); if (!v.length) return;
     try { await navigator.clipboard.writeText(v.map((n) => n.text).join("\n\n")); toast("Copied " + (v.length === 1 ? "1 note" : v.length + " notes")); } catch (err) { toast("Copy blocked."); }
   });
+
+  // natural, random blink across every oto mark on the page
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    (function blink() { setTimeout(() => {
+      document.querySelectorAll(".wordmark").forEach((w) => w.classList.add("blink"));
+      setTimeout(() => document.querySelectorAll(".wordmark").forEach((w) => w.classList.remove("blink")), 150);
+      blink();
+    }, 1800 + Math.random() * 2400); })();
+  }
 
   boot();
 </script>

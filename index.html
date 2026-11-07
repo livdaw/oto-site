@@ -147,6 +147,8 @@
   // blink the hero face
   const hero = document.getElementById("heroFace");
   (function loop() { if (reduce) return; setTimeout(() => { hero.classList.add("shut"); setTimeout(() => hero.classList.remove("shut"), 150); loop(); }, 1800 + Math.random() * 2400); })();
+  // if already signed in, the corner link points to the account, not sign-in
+  try { if (JSON.parse(localStorage.getItem("oto_web_session") || "null")) { const a = document.querySelector(".signin-link"); if (a) a.textContent = "your account"; } } catch (e) {}
 
   // render o and t as the logo letterforms across the display headings
   function glyph(id, cls) { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("class", cls); const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#" + id); s.appendChild(u); return s; }
