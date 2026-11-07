@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>oto — privacy</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+  :root { --paper:#f7f5f1; --ink:#17130f; --muted:#5f584f; --faint:#9a9288; --line:#e7e2da; --blue:#2f7fb0;
+    --sans:"Instrument Sans",system-ui,sans-serif; --serif:"Newsreader",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 56px 22px 90px; }
+  .mk { height: 30px; width: 68px; color: var(--blue); display: block; }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: 34px; letter-spacing: -.01em; margin: 26px 0 4px; }
+  .eff { font-family: var(--mono); font-size: 12px; color: var(--faint); letter-spacing: .03em; }
+  .lede { font-family: var(--serif); font-size: 19px; line-height: 1.5; color: var(--ink); margin: 22px 0 0; }
+  h2 { font-size: 15px; font-weight: 600; margin: 34px 0 6px; }
+  p, li { font-size: 15px; color: var(--muted); }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin: 5px 0; }
+  strong { color: var(--ink); font-weight: 500; }
+  a { color: var(--blue); }
+  .foot { margin-top: 40px; font-size: 13px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 18px; }
+  code { font-family: var(--mono); font-size: 13px; background: #efece6; padding: 1px 5px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <svg class="mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+  <h1>Privacy</h1>
+  <div class="eff">Effective 7 November 2026</div>
+
+  <p class="lede">oto exists to protect your own thinking. It collects as little as possible, keeps what it does collect in your own account, and never sells it.</p>
+
+  <h2>What oto stores</h2>
+  <ul>
+    <li><strong>Your thoughts</strong> — the notes you choose to write, and any tags you add to them.</li>
+    <li><strong>Your sign-in</strong> — the email address you use to log in (authentication only).</li>
+    <li><strong>Your usage figures</strong> — time spent on AI sites, number of prompts sent, and quiet (downtime) minutes, as daily totals.</li>
+  </ul>
+
+  <h2>What oto never does</h2>
+  <ul>
+    <li>It does <strong>not read, record, or store the content</strong> of your prompts, your conversations, or any page you visit. Time and prompt <em>counts</em> are measured — never the words.</li>
+    <li>It does not track your browsing beyond timing the specific AI sites it is built to measure.</li>
+    <li>No advertising, no third-party analytics, no data brokers. Your data is never sold or shared.</li>
+  </ul>
+
+  <h2>Where your data lives</h2>
+  <p>Usage and notes are cached locally in your browser so oto works offline. When you sign in, your notes and usage sync to a private account in oto's backend (Supabase). Row-level security means <strong>only you can read your own data</strong> — no other user can.</p>
+
+  <h2>Permissions, and why</h2>
+  <ul>
+    <li><code>storage</code> — to keep your notes, settings and usage on your device.</li>
+    <li><code>alarms</code> — to run scheduled thinking blocks and tick usage.</li>
+    <li><code>tabs</code> and site access (Claude, ChatGPT, Gemini, Perplexity, Copilot) — to measure time and count prompts on those sites, and to hold them during a thinking block. oto reads the site's address, not its contents.</li>
+  </ul>
+
+  <h2>Your control</h2>
+  <p>You can delete any note in the app. You can sign out at any time, which clears the local copy. To delete your account and everything in it, contact us and we will remove it.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or deletion requests: <strong>[set your contact email]</strong>.</p>
+
+  <div class="foot">oto is an invite-only beta. This policy may change as the product develops; the effective date above will be updated when it does.</div>
+</div>
+</body>
+</html>

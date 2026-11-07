@@ -332,11 +332,8 @@
   function renderToday() {
     const total = notes.length;
     const u = usage;
-    if (u && (u.seconds || u.prompts)) {
-      $("lede").innerHTML = `You leaned on AI for <span class="n">${hm(u.seconds)}</span> today, and kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.`;
-    } else {
-      $("lede").innerHTML = total ? `You've kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.` : "No thoughts yet — they'll appear here as you keep them.";
-    }
+    const todayCount = notes.filter((n) => { const d = new Date(n.ts), t = new Date(); return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate(); }).length;
+    $("lede").innerHTML = todayCount ? `You've kept <span class="n">${todayCount}</span> ${todayCount === 1 ? "thought" : "thoughts"} to yourself today.` : "No thoughts kept yet today — they'll appear as you keep them.";
     otoize($("lede"));   // the reflection carries the logo letterforms too
 
     if (u) {
