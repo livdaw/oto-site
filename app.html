@@ -154,6 +154,20 @@
 
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(14px); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 11px; font-size: 13px; font-weight: 500; opacity: 0; transition: .25s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%); }
+
+  /* terms agreement modal */
+  .modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(23,19,15,.45); padding: 20px; }
+  .modal[hidden] { display: none; }
+  .modal-card { background: var(--surface); color: var(--ink); border-radius: 16px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 18px 50px rgba(0,0,0,.22); }
+  .modal-card h3 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 22px; }
+  .modal-lede { font-size: 14px; color: var(--muted); line-height: 1.55; margin: 10px 0 0; }
+  .agree { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; color: var(--ink); margin: 16px 0 0; cursor: pointer; }
+  .agree input { margin-top: 3px; flex: none; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .modal-actions .ghost { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px; padding: 9px 12px; }
+  .modal-actions .ghost:hover { color: var(--ink); }
+  .modal-actions .primary { border: 0; background: var(--sky); color: #14110d; font-weight: 600; cursor: pointer; font-size: 14px; padding: 9px 18px; border-radius: 11px; }
+  .modal-actions .primary:disabled { opacity: .5; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -256,6 +270,15 @@
     <p class="snote">Unzip it, then open <code>chrome://extensions</code> or <code>edge://extensions</code>, turn on <strong>Developer mode</strong>, and choose <strong>Load unpacked</strong> → the unzipped folder. It signs in with this same account.</p>
     <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your thoughts and today's reflection, synced to your account.</p>
   </section>
+</div>
+
+<div class="modal" id="termsModal" hidden>
+  <div class="modal-card">
+    <h3>Before you download</h3>
+    <p class="modal-lede">oto is a private, invite-only beta. By downloading you agree to keep it — and the idea behind it — confidential, and not to copy, redistribute, or reuse it to build something similar.</p>
+    <label class="agree"><input type="checkbox" id="agreeChk"> I've read and agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy policy</a>.</label>
+    <div class="modal-actions"><button class="ghost" id="termsCancel">Cancel</button><button class="primary" id="termsAgree" disabled>Agree &amp; download</button></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -474,9 +497,17 @@
     } catch (e) { toast("Download isn't available yet."); }
   }
   async function logDownload(s, version) {
-    try { await fetch(CFG.url + "/rest/v1/downloads", { method: "POST", headers: Object.assign(H(s.access_token), { Prefer: "return=minimal" }), body: JSON.stringify({ email: s.email, version, ts: Date.now() }) }); } catch (e) { /* table not set up yet — ignore */ }
+    const post = (body) => fetch(CFG.url + "/rest/v1/downloads", { method: "POST", headers: Object.assign(H(s.access_token), { Prefer: "return=minimal" }), body: JSON.stringify(body) });
+    try { const r = await post({ email: s.email, version, ts: Date.now(), terms_version: "1.0" }); if (!r.ok) await post({ email: s.email, version, ts: Date.now() }); } catch (e) { /* table not set up yet — ignore */ }
   }
-  $("dlExt").addEventListener("click", downloadExtension);
+  // gate the download behind a terms agreement
+  const termsModal = $("termsModal"), agreeChk = $("agreeChk");
+  const closeTerms = () => { termsModal.hidden = true; };
+  $("dlExt").addEventListener("click", () => { agreeChk.checked = false; $("termsAgree").disabled = true; termsModal.hidden = false; });
+  agreeChk.addEventListener("change", () => { $("termsAgree").disabled = !agreeChk.checked; });
+  $("termsCancel").addEventListener("click", closeTerms);
+  termsModal.addEventListener("click", (e) => { if (e.target === termsModal) closeTerms(); });
+  $("termsAgree").addEventListener("click", () => { if (!agreeChk.checked) return; closeTerms(); downloadExtension(); });
   $("search").addEventListener("input", renderNotes);
   $("fTag").addEventListener("change", renderNotes);
   $("tSend").addEventListener("click", () => keep("tText", "tTag"));
