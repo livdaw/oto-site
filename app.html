@@ -148,7 +148,9 @@
   .srow .v { font-size: 14px; color: var(--ink); }
   .srow .out { all: unset; cursor: pointer; color: var(--blue); font-weight: 500; font-size: 14px; }
   .srow .out:hover { text-decoration: underline; }
-  .snote { font-size: 13px; color: var(--faint); margin-top: 18px; line-height: 1.5; }
+  .snote { font-size: 13px; color: var(--faint); margin-top: 18px; line-height: 1.6; }
+  .snote code { font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; color: var(--muted); }
+  .snote strong { color: var(--ink); font-weight: 600; }
 
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(14px); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 11px; font-size: 13px; font-weight: 500; opacity: 0; transition: .25s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%); }
@@ -250,6 +252,8 @@
   <section class="panel" id="settings" hidden>
     <div class="srow"><span class="k">Signed in as</span><span class="v" id="acct"></span></div>
     <div class="srow"><span class="k">Account</span><button class="out" id="signOut">Sign out</button></div>
+    <div class="srow"><span class="k">Browser extension</span><a class="out" id="dlExt" href="oto-extension.zip" download>Download · v0.1.0</a></div>
+    <p class="snote">Unzip it, then open <code>chrome://extensions</code> or <code>edge://extensions</code>, turn on <strong>Developer mode</strong>, and choose <strong>Load unpacked</strong> → the unzipped folder. It signs in with this same account.</p>
     <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your thoughts and today's reflection, synced to your account.</p>
   </section>
 </div>
