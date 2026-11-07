@@ -20,11 +20,17 @@
   body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
   [hidden] { display: none !important; }
   .wordmark { display: block; color: var(--ink); }
+  /* the face in oto blinks */
+  .wordmark .eye { animation: otoOpen 5.2s infinite; }
+  .wordmark .lid { opacity: 0; animation: otoShut 5.2s infinite; }
+  @keyframes otoOpen { 0%,91%{opacity:1} 92.5%,95.5%{opacity:0} 97%,100%{opacity:1} }
+  @keyframes otoShut { 0%,91%{opacity:0} 92.5%,95.5%{opacity:1} 97%,100%{opacity:0} }
+  @media (prefers-reduced-motion: reduce) { .wordmark .eye { animation: none; opacity: 1; } .wordmark .lid { display: none; } }
 
   /* login */
   .login { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
-  .login .mk { height: 40px; width: 90px; color: var(--blue); }
-  .login .tag { color: var(--muted); font-size: 14px; }
+  .login .mk { height: 58px; width: 134px; color: var(--blue); }
+  .login .tag { color: var(--muted); font-size: 15px; font-family: var(--serif); }
   .login form { display: flex; flex-direction: column; gap: 11px; width: 100%; max-width: 300px; margin-top: 6px; }
   .login input { width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 13px 15px; font-family: var(--sans); font-size: 15px; }
   .login input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
@@ -42,7 +48,7 @@
   .top .out { all: unset; cursor: pointer; color: var(--blue); font-weight: 500; }
   .top .out:hover { text-decoration: underline; }
 
-  .lede { font-family: var(--serif); font-size: 24px; margin: 26px 0 0; }
+  .lede { font-family: var(--serif); font-size: 26px; line-height: 1.3; margin: 26px 0 0; }
   .lede .n { font-family: var(--mono); font-size: .8em; }
 
   .controls { display: flex; gap: 10px; margin: 18px 0 2px; flex-wrap: wrap; }
@@ -72,8 +78,8 @@
 <body>
 
 <div class="login" id="login" hidden>
-  <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
-  <div class="tag">your notes, in one place</div>
+  <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle class="eye" cx="55" cy="71" r="27"/><path class="lid" d="M33 71 Q55 83 77 71"/><circle class="eye" cx="245" cy="71" r="27"/><path class="lid" d="M223 71 Q245 83 267 71"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+  <div class="tag">a quiet place for original thoughts only</div>
   <form id="loginForm">
     <input type="email" id="email" placeholder="you@work.com" autocomplete="email" required>
     <input type="password" id="pass" placeholder="password" autocomplete="current-password" required>
@@ -85,7 +91,7 @@
 
 <div class="app" id="app" hidden>
   <div class="top">
-    <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+    <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle class="eye" cx="55" cy="71" r="27"/><path class="lid" d="M33 71 Q55 83 77 71"/><circle class="eye" cx="245" cy="71" r="27"/><path class="lid" d="M223 71 Q245 83 267 71"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
     <div class="who"><span id="acct"></span><button class="out" id="signOut">Sign out</button></div>
   </div>
 
