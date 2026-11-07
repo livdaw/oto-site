@@ -313,6 +313,7 @@
     } else {
       $("lede").innerHTML = total ? `You've kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.` : "No thoughts yet — they'll appear here as you keep them.";
     }
+    otoize($("lede"));   // the reflection carries the logo letterforms too
 
     if (u) {
       $("bars").hidden = false;
