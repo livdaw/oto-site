@@ -5,15 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>oto — your notes</title>
 <link rel="icon" href="favicon.svg">
+<script>try{var t=localStorage.getItem("oto_web_theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root {
     --paper:#f7f5f1; --surface:#ffffff; --surface-2:#f0ede7; --ink:#17130f; --muted:#6f685f; --faint:#9a9288;
-    --line:#e7e2da; --sky:#8fc6eb; --blue:#2f7fb0;
+    --line:#e7e2da; --bar:#e6e1d8; --sky:#8fc6eb; --blue:#2f7fb0; --you-soft:#e7f2fb;
     --sans:"Instrument Sans",system-ui,sans-serif; --serif:"Newsreader",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
     color-scheme: light;
+  }
+  :root[data-theme="dark"] {
+    --paper:#121011; --surface:#1b1816; --surface-2:#141210; --ink:#f4efe9; --muted:#9a9088; --faint:#6c736f;
+    --line:#2c2724; --bar:#352f28; --sky:#9ecdef; --blue:#9ecdef; --you-soft:#17283a;
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -40,36 +46,87 @@
   .msg.bad { color: #c0603a; }
   .login .foot { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; color: var(--faint); margin-top: 4px; }
 
-  /* app */
-  .app { max-width: 720px; margin: 0 auto; padding: 22px 20px 80px; }
-  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
-  .top .mk { height: 22px; width: 50px; }
-  .top .who { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
-  .top .out { all: unset; cursor: pointer; color: var(--blue); font-weight: 500; }
-  .top .out:hover { text-decoration: underline; }
+  /* app shell */
+  .app { max-width: 620px; margin: 0 auto; padding: 24px 20px 90px; }
+  .top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .top .brand { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .top .mk { height: 26px; width: 60px; color: var(--ink); }
+  .top .brand-tag { font-size: 12px; color: var(--muted); }
+  .top .tools { display: flex; align-items: center; gap: 14px; }
+  .theme { all: unset; cursor: pointer; color: var(--faint); font-size: 17px; line-height: 1; }
+  .theme:hover { color: var(--muted); }
 
-  .lede { font-family: var(--serif); font-size: 26px; line-height: 1.3; margin: 26px 0 0; }
+  /* tabs */
+  .tabs { display: flex; gap: 22px; margin-top: 22px; border-bottom: 1px solid var(--line); }
+  .tabs button { all: unset; cursor: pointer; font-size: 15px; font-weight: 500; color: var(--muted); padding: 0 0 12px; position: relative; }
+  .tabs button[aria-current="true"] { color: var(--ink); }
+  .tabs button[aria-current="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--blue); border-radius: 2px; }
+
+  .panel { padding-top: 20px; }
+  .panel[hidden] { display: none; }
+
+  /* today */
+  .date { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--faint); }
+  .lede { font-family: var(--serif); font-size: 26px; line-height: 1.3; margin: 9px 0 0; }
   .lede .n { font-family: var(--mono); font-size: .8em; }
 
-  .controls { display: flex; gap: 10px; margin: 18px 0 2px; flex-wrap: wrap; }
-  .controls input, .controls select { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-family: var(--sans); font-size: 13px; }
-  .controls input { flex: 1; min-width: 160px; }
-  .controls select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 30px;
+  .bars { margin-top: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .barblock .barlabels { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; color: var(--muted); }
+  .barblock .barlabels b { font-family: var(--mono); font-weight: 400; color: var(--ink); }
+  .barblock .barlabels .r { color: var(--blue); }
+  .barblock .barlabels .r b { color: var(--blue); }
+  .track { margin-top: 8px; height: 8px; border-radius: 999px; background: var(--bar); overflow: hidden; display: flex; justify-content: flex-end; }
+  .track .fill-you { background: var(--blue); height: 100%; }
+  .streak { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 16px; }
+  .rule { height: 1px; background: var(--line); margin: 22px 0; }
+
+  .where h3, .capblock h3 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 12px; }
+  .host { margin-bottom: 14px; }
+  .host .hl { display: flex; justify-content: space-between; font-size: 14px; }
+  .host .hl .t { font-family: var(--mono); color: var(--faint); font-size: 12.5px; }
+  .host .hbar { margin-top: 6px; height: 2px; background: var(--blue); border-radius: 2px; }
+  .where .none { font-family: var(--serif); color: var(--faint); font-size: 15px; }
+
+  /* capture (today + notebook) */
+  .capblock { margin-top: 4px; }
+  .capwrap { position: relative; }
+  .capblock textarea { width: 100%; box-sizing: border-box; min-height: 92px; resize: vertical; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 14px; padding: 14px 52px 14px 16px; font-family: var(--serif); font-size: 17px; line-height: 1.5; }
+  .capblock textarea:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .cap-send { position: absolute; right: 10px; bottom: 10px; width: 34px; height: 34px; border-radius: 10px; border: 0; cursor: pointer; background: var(--sky); color: #14110d; font-size: 15px; display: grid; place-items: center; }
+  .cap-send:hover { opacity: .9; }
+  .caprow { display: flex; gap: 10px; margin-top: 10px; }
+  .caprow input { flex: 1; min-width: 0; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 10px; padding: 9px 12px; font-family: var(--sans); font-size: 13px; }
+  .caprow input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .chips .pick { cursor: pointer; border: 0; background: var(--surface-2); color: var(--muted); font-size: 12px; padding: 4px 11px; border-radius: 999px; }
+  .chips .pick:hover, .chips .pick.on { color: var(--blue); }
+
+  /* notebook */
+  .controls { display: flex; gap: 10px; margin: 0 0 2px; flex-wrap: wrap; align-items: center; }
+  .controls input.search { flex: 1; min-width: 160px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-family: var(--sans); font-size: 13px; }
+  .controls select { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 32px 8px 14px; font-family: var(--sans); font-size: 13px; appearance: none; -webkit-appearance: none; cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23999' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
   .controls .copyall { margin-left: auto; cursor: pointer; border: 0; background: transparent; color: var(--blue); font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
   .controls .copyall:hover { text-decoration: underline; }
-  .sub { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 10px; }
-
-  .list { margin-top: 4px; }
+  .sub { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin: 14px 0 0; }
+  .list { margin-top: 2px; }
   .note { position: relative; padding: 16px 0; border-top: 1px solid var(--line); }
   .list .note:first-child { border-top: 0; }
-  .note[hidden] { display: none; }
   .note .when { font-family: var(--mono); font-size: 11px; color: var(--faint); }
   .note .text { font-family: var(--serif); font-size: 18px; line-height: 1.5; margin-top: 5px; padding-right: 28px; }
   .note .tag { display: inline-block; margin-top: 10px; font-size: 10.5px; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
   .note .copy { position: absolute; top: 16px; right: 0; cursor: pointer; border: 0; background: transparent; color: var(--faint); padding: 4px; line-height: 0; border-radius: 6px; }
   .note .copy:hover { color: var(--blue); background: var(--surface-2); }
-  .empty { font-family: var(--serif); font-style: normal; color: var(--faint); padding: 40px 0; text-align: center; }
+  .empty { font-family: var(--serif); color: var(--faint); padding: 40px 0; text-align: center; }
+
+  /* settings */
+  .srow { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+  .srow:first-child { border-top: 0; }
+  .srow .k { font-size: 14px; color: var(--muted); }
+  .srow .v { font-size: 14px; color: var(--ink); }
+  .srow .out { all: unset; cursor: pointer; color: var(--blue); font-weight: 500; font-size: 14px; }
+  .srow .out:hover { text-decoration: underline; }
+  .snote { font-size: 13px; color: var(--faint); margin-top: 18px; line-height: 1.5; }
 
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(14px); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 11px; font-size: 13px; font-weight: 500; opacity: 0; transition: .25s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%); }
@@ -91,21 +148,83 @@
 
 <div class="app" id="app" hidden>
   <div class="top">
-    <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle class="eye" cx="55" cy="71" r="27"/><path class="lid" d="M33 71 Q55 83 77 71"/><circle class="eye" cx="245" cy="71" r="27"/><path class="lid" d="M223 71 Q245 83 267 71"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
-    <div class="who"><span id="acct"></span><button class="out" id="signOut">Sign out</button></div>
+    <div class="brand">
+      <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle class="eye" cx="55" cy="71" r="27"/><path class="lid" d="M33 71 Q55 83 77 71"/><circle class="eye" cx="245" cy="71" r="27"/><path class="lid" d="M223 71 Q245 83 267 71"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+      <div class="brand-tag">a quiet place for original thoughts only</div>
+    </div>
+    <div class="tools"><button class="theme" id="theme" title="Toggle theme" aria-label="Toggle theme">◐</button></div>
   </div>
 
-  <p class="lede" id="lede"></p>
-
-  <div class="controls">
-    <input type="text" id="search" placeholder="Search your thoughts…">
-    <select id="fTag"><option value="">All tags</option></select>
-    <button class="copyall" id="copyAll"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy all</button>
+  <div class="tabs" id="tabs">
+    <button data-tab="today" aria-current="true">Today</button>
+    <button data-tab="notebook" aria-current="false">Notebook</button>
+    <button data-tab="settings" aria-current="false">Settings</button>
   </div>
-  <div class="sub" id="count"></div>
 
-  <div class="list" id="list"></div>
-  <div class="empty" id="empty" hidden></div>
+  <!-- TODAY -->
+  <section class="panel" id="today">
+    <div class="date" id="date"></div>
+    <p class="lede" id="lede"></p>
+
+    <div class="bars" id="bars" hidden>
+      <div class="barblock">
+        <div class="barlabels"><span>AI time <b id="aiTime">0:00</b></span><span class="r">downtime <b id="downTime">0m</b></span></div>
+        <div class="track"><div class="fill-you" id="downFill" style="width:0%"></div></div>
+      </div>
+      <div class="barblock">
+        <div class="barlabels"><span>prompts <b id="prompts">0</b></span><span class="r">original thoughts <b id="ots">0</b></span></div>
+        <div class="track"><div class="fill-you" id="otFill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="streak" id="streak" hidden></div>
+
+    <div class="rule"></div>
+
+    <div class="where" id="where">
+      <h3>Where it went</h3>
+      <div id="hosts"></div>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="capblock">
+      <h3>A thought, right now?</h3>
+      <div class="capwrap">
+        <textarea id="tText" placeholder="Write it in your own words…  ↵ to keep"></textarea>
+        <button class="cap-send" id="tSend" title="Keep it" aria-label="Keep it">↵</button>
+      </div>
+      <div class="caprow"><input id="tTag" placeholder="tag (optional)"></div>
+      <div class="chips" id="tChips" hidden></div>
+    </div>
+  </section>
+
+  <!-- NOTEBOOK -->
+  <section class="panel" id="notebook" hidden>
+    <div class="capblock" style="margin-bottom:22px">
+      <div class="capwrap">
+        <textarea id="nText" placeholder="Add a note — ↵ to keep"></textarea>
+        <button class="cap-send" id="nSend" title="Keep it" aria-label="Keep it">↵</button>
+      </div>
+      <div class="caprow"><input id="nTag" placeholder="tag (optional)"></div>
+      <div class="chips" id="nChips" hidden></div>
+    </div>
+
+    <div class="controls">
+      <input type="text" class="search" id="search" placeholder="Search your thoughts…">
+      <select id="fTag"><option value="">All tags</option></select>
+      <button class="copyall" id="copyAll"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy all</button>
+    </div>
+    <div class="sub" id="count"></div>
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty" hidden></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="panel" id="settings" hidden>
+    <div class="srow"><span class="k">Signed in as</span><span class="v" id="acct"></span></div>
+    <div class="srow"><span class="k">Account</span><button class="out" id="signOut">Sign out</button></div>
+    <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your notes and today's reflection, synced to your account.</p>
+  </section>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -117,52 +236,110 @@
   async function signIn(email, password) { const r = await fetch(CFG.url + "/auth/v1/token?grant_type=password", { method: "POST", headers: H(), body: JSON.stringify({ email, password }) }); if (!r.ok) throw new Error(await emsg(r)); return r.json(); }
   async function refresh(rt) { const r = await fetch(CFG.url + "/auth/v1/token?grant_type=refresh_token", { method: "POST", headers: H(), body: JSON.stringify({ refresh_token: rt }) }); if (!r.ok) throw new Error("expired"); return r.json(); }
   async function listNotes(token) { const r = await fetch(CFG.url + "/rest/v1/notes?select=id,text,tag,ts,block_start&order=ts.desc", { headers: H(token) }); if (!r.ok) throw new Error("load failed"); return r.json(); }
+  async function insertNote(token, note) { const r = await fetch(CFG.url + "/rest/v1/notes", { method: "POST", headers: Object.assign(H(token), { Prefer: "return=representation" }), body: JSON.stringify(note) }); if (!r.ok) throw new Error("save failed"); return (await r.json())[0]; }
+  async function getUsage(token, day) { try { const r = await fetch(CFG.url + "/rest/v1/usage?day=eq." + day + "&select=seconds,prompts,downtime,by_host,streak&limit=1", { headers: H(token) }); if (!r.ok) return null; const rows = await r.json(); return rows[0] || null; } catch (e) { return null; } }
 
   const getSess = () => { try { return JSON.parse(localStorage.getItem("oto_web_session") || "null"); } catch (e) { return null; } };
   const setSess = (s) => { try { localStorage.setItem("oto_web_session", JSON.stringify(s)); } catch (e) {} };
   const clearSess = () => { try { localStorage.removeItem("oto_web_session"); } catch (e) {} };
+  const sessFrom = (d, fallbackEmail) => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() + ((d.expires_in || 3600) * 1000), email: (d.user && d.user.email) || fallbackEmail });
   async function validToken() {
     let s = getSess(); if (!s) return null;
     if (s.expires_at && s.expires_at - Date.now() > 60000) return s;
     if (s.refresh_token) { try { const d = await refresh(s.refresh_token); s = sessFrom(d, s.email); setSess(s); return s; } catch (e) { return null; } }
     return null;
   }
-  const sessFrom = (d, fallbackEmail) => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() + ((d.expires_in || 3600) * 1000), email: (d.user && d.user.email) || fallbackEmail });
 
   const $ = (id) => document.getElementById(id);
   function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(window.__t); window.__t = setTimeout(() => el.classList.remove("show"), 1800); }
   function msg(t, bad) { const m = $("msg"); m.textContent = t || ""; m.classList.toggle("bad", !!bad); }
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const fmtDate = (ts) => { const d = new Date(Number(ts)); const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]; return `${d.getDate()} ${mo} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const fmtDate = (ts) => { const d = new Date(Number(ts)); return `${d.getDate()} ${MONTHS[d.getMonth()]} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+  const hm = (sec) => { sec = Number(sec) || 0; return `${Math.floor(sec/3600)}:${String(Math.floor((sec%3600)/60)).padStart(2,"0")}`; };
+  const mins = (sec) => `${Math.round((Number(sec)||0)/60)}m`;
+  const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const promptFrom = (t) => `My own starting thought:\n"${t}"\n\nBuild on this as my premise — pressure-test it, extend it, and show me where it's weakest. Don't replace my thinking.`;
 
-  let notes = [];
+  let notes = [], tags = [], session = null, usage = null;
+
   function showLogin() { $("login").hidden = false; $("app").hidden = true; }
   function showApp(s) { $("login").hidden = true; $("app").hidden = false; $("acct").textContent = s.email || ""; }
 
   async function boot() {
-    const s = await validToken();
-    if (s) { showApp(s); loadNotes(s); } else { showLogin(); $("email").focus(); }
+    session = await validToken();
+    if (!session) { showLogin(); $("email").focus(); return; }
+    showApp(session);
+    const d = new Date();
+    $("date").textContent = `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    await Promise.all([loadNotes(), loadUsage()]);
   }
-  async function loadNotes(s) {
+
+  async function loadNotes() {
     try {
-      notes = (await listNotes(s.access_token)).map((n) => ({ id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts) }));
-      buildTags(); render();
+      notes = (await listNotes(session.access_token)).map((n) => ({ id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts) }));
+      tags = []; const seen = new Set();
+      notes.forEach((n) => { if (n.tag && !seen.has(n.tag)) { seen.add(n.tag); tags.push(n.tag); } });
+      buildTagUI(); renderNotes(); renderToday();
     } catch (e) { clearSess(); showLogin(); }
   }
-  function buildTags() {
-    const seen = new Set(), tags = [];
-    notes.forEach((n) => { if (n.tag && !seen.has(n.tag)) { seen.add(n.tag); tags.push(n.tag); } });
-    $("fTag").innerHTML = '<option value="">All tags</option>' + tags.map((t) => `<option>${esc(t)}</option>`).join("");
-    const total = notes.length;
-    $("lede").innerHTML = total ? `You've kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.` : "No thoughts yet — they'll appear here as you keep them.";
+  async function loadUsage() {
+    usage = await getUsage(session.access_token, dayKey());
+    renderToday();
   }
+
+  function renderToday() {
+    const total = notes.length;
+    const u = usage;
+    if (u && (u.seconds || u.prompts)) {
+      $("lede").innerHTML = `You leaned on AI for <span class="n">${hm(u.seconds)}</span> today, and kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.`;
+    } else {
+      $("lede").innerHTML = total ? `You've kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.` : "No thoughts yet — they'll appear here as you keep them.";
+    }
+
+    if (u) {
+      $("bars").hidden = false;
+      $("aiTime").textContent = hm(u.seconds);
+      $("downTime").textContent = mins(u.downtime);
+      const sec = Number(u.seconds) || 0, down = Number(u.downtime) || 0;
+      $("downFill").style.width = (sec + down > 0 ? Math.round(down / (sec + down) * 100) : 0) + "%";
+      $("prompts").textContent = Number(u.prompts) || 0;
+      $("ots").textContent = total;
+      const p = Number(u.prompts) || 0;
+      $("otFill").style.width = (p + total > 0 ? Math.round(total / (p + total) * 100) : 0) + "%";
+      if (u.streak) { $("streak").hidden = false; $("streak").textContent = `${u.streak}-day thought streak`; } else $("streak").hidden = true;
+
+      const hosts = u.by_host && typeof u.by_host === "object" ? Object.entries(u.by_host).sort((a, b) => b[1] - a[1]) : [];
+      const max = hosts.length ? hosts[0][1] : 1;
+      $("hosts").innerHTML = hosts.length
+        ? hosts.map(([h, s]) => `<div class="host"><div class="hl"><span>${esc(h)}</span><span class="t">${mins(s)}</span></div><div class="hbar" style="width:${Math.max(6, Math.round(s / max * 100))}%"></div></div>`).join("")
+        : '<div class="none">Nothing tracked yet today.</div>';
+      $("where").hidden = false;
+    } else {
+      $("bars").hidden = true; $("streak").hidden = true;
+      $("hosts").innerHTML = '<div class="none">Open oto in your browser extension to start tracking today — it syncs here.</div>';
+    }
+  }
+
+  function buildTagUI() {
+    $("fTag").innerHTML = '<option value="">All tags</option>' + tags.map((t) => `<option>${esc(t)}</option>`).join("");
+    renderChips();
+  }
+  function renderChips() {
+    ["tChips", "nChips"].forEach((id) => {
+      const wrap = $(id); const ts = tags.slice(0, 8);
+      wrap.hidden = ts.length === 0;
+      wrap.innerHTML = ts.map((t) => `<button class="pick">${esc(t)}</button>`).join("");
+    });
+  }
+
   function visible() {
     const q = $("search").value.trim().toLowerCase();
     const tag = $("fTag").value;
     return notes.filter((n) => (!tag || n.tag === tag) && (!q || n.text.toLowerCase().includes(q)));
   }
-  function render() {
+  function renderNotes() {
     const v = visible();
     $("count").textContent = v.length === 1 ? "1 note" : v.length + " notes";
     $("empty").hidden = v.length > 0;
@@ -177,18 +354,56 @@
       </div>`).join("");
   }
 
+  async function keep(textId, tagId) {
+    const el = $(textId), tagEl = $(tagId);
+    const text = el.value.trim(); if (!text) { el.focus(); return; }
+    const tag = (tagEl.value || "").trim() || null;
+    const ts = Date.now();
+    el.value = ""; tagEl.value = "";
+    try {
+      const row = await insertNote(session.access_token, { text, tag, ts });
+      notes.unshift({ id: (row && row.id) || ts, text, tag, ts });
+      if (tag && !tags.includes(tag)) { tags.unshift(tag); buildTagUI(); }
+      renderNotes(); renderToday(); toast("Kept.");
+    } catch (e) { toast("Couldn't save — try again."); el.value = text; }
+  }
+
   // events
   $("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = $("email").value.trim(), password = $("pass").value;
     if (!email || !password) return;
     msg("Signing in…");
-    try { const d = await signIn(email, password); const s = sessFrom(d, email); setSess(s); msg(""); $("pass").value = ""; showApp(s); loadNotes(s); }
+    try { const d = await signIn(email, password); session = sessFrom(d, email); setSess(session); msg(""); $("pass").value = ""; boot(); }
     catch (err) { msg(err.message || "Wrong email or password.", true); }
   });
-  $("signOut").addEventListener("click", () => { clearSess(); notes = []; showLogin(); });
-  $("search").addEventListener("input", render);
-  $("fTag").addEventListener("change", render);
+  $("tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-tab]"); if (!b) return;
+    const tab = b.dataset.tab;
+    ["today", "notebook", "settings"].forEach((p) => { $(p).hidden = p !== tab; });
+    document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-current", String(x.dataset.tab === tab)));
+  });
+  $("theme").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = dark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("oto_web_theme", next); } catch (e) {}
+  });
+  $("signOut").addEventListener("click", () => { clearSess(); notes = []; usage = null; showLogin(); });
+  $("search").addEventListener("input", renderNotes);
+  $("fTag").addEventListener("change", renderNotes);
+  $("tSend").addEventListener("click", () => keep("tText", "tTag"));
+  $("nSend").addEventListener("click", () => keep("nText", "nTag"));
+  function enterKeep(textId, tagId) { return (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); keep(textId, tagId); } }; }
+  $("tText").addEventListener("keydown", enterKeep("tText", "tTag"));
+  $("nText").addEventListener("keydown", enterKeep("nText", "nTag"));
+  document.addEventListener("click", (e) => {
+    const p = e.target.closest(".chips .pick"); if (!p) return;
+    const box = p.closest(".capblock"); const tagEl = box && box.querySelector(".caprow input");
+    if (tagEl) tagEl.value = p.textContent;
+    box.querySelectorAll(".chips .pick").forEach((x) => x.classList.toggle("on", x === p));
+  });
   $("list").addEventListener("click", async (e) => {
     const b = e.target.closest(".copy"); if (!b) return;
     const n = notes.find((x) => String(x.id) === String(b.dataset.id)); if (!n) return;
