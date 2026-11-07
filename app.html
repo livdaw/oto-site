@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>oto — your notes</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:#f7f5f1; --surface:#ffffff; --surface-2:#f0ede7; --ink:#17130f; --muted:#6f685f; --faint:#9a9288;
+    --line:#e7e2da; --sky:#8fc6eb; --blue:#2f7fb0;
+    --sans:"Instrument Sans",system-ui,sans-serif; --serif:"Newsreader",Georgia,serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  [hidden] { display: none !important; }
+  .wordmark { display: block; color: var(--ink); }
+
+  /* login */
+  .login { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 24px; text-align: center; }
+  .login .mk { height: 40px; width: 90px; color: var(--blue); }
+  .login .tag { color: var(--muted); font-size: 14px; }
+  .login form { display: flex; flex-direction: column; gap: 11px; width: 100%; max-width: 300px; margin-top: 6px; }
+  .login input { width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 13px 15px; font-family: var(--sans); font-size: 15px; }
+  .login input:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .login button { border: 0; cursor: pointer; background: var(--sky); color: #14110d; font-weight: 600; font-size: 15px; padding: 13px; border-radius: 12px; }
+  .login button:hover { opacity: .92; }
+  .msg { font-size: 12.5px; color: var(--muted); min-height: 16px; }
+  .msg.bad { color: #c0603a; }
+  .login .foot { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; color: var(--faint); margin-top: 4px; }
+
+  /* app */
+  .app { max-width: 720px; margin: 0 auto; padding: 22px 20px 80px; }
+  .top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .top .mk { height: 22px; width: 50px; }
+  .top .who { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+  .top .out { all: unset; cursor: pointer; color: var(--blue); font-weight: 500; }
+  .top .out:hover { text-decoration: underline; }
+
+  .lede { font-family: var(--serif); font-size: 24px; margin: 26px 0 0; }
+  .lede .n { font-family: var(--mono); font-size: .8em; }
+
+  .controls { display: flex; gap: 10px; margin: 18px 0 2px; flex-wrap: wrap; }
+  .controls input, .controls select { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 14px; font-family: var(--sans); font-size: 13px; }
+  .controls input { flex: 1; min-width: 160px; }
+  .controls select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 30px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='6'%3E%3Cpath d='M1 1l3 3 3-3' stroke='%23999' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .controls .copyall { margin-left: auto; cursor: pointer; border: 0; background: transparent; color: var(--blue); font-weight: 500; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+  .controls .copyall:hover { text-decoration: underline; }
+  .sub { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin-top: 10px; }
+
+  .list { margin-top: 4px; }
+  .note { position: relative; padding: 16px 0; border-top: 1px solid var(--line); }
+  .list .note:first-child { border-top: 0; }
+  .note[hidden] { display: none; }
+  .note .when { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .note .text { font-family: var(--serif); font-size: 18px; line-height: 1.5; margin-top: 5px; padding-right: 28px; }
+  .note .tag { display: inline-block; margin-top: 10px; font-size: 10.5px; padding: 2px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+  .note .copy { position: absolute; top: 16px; right: 0; cursor: pointer; border: 0; background: transparent; color: var(--faint); padding: 4px; line-height: 0; border-radius: 6px; }
+  .note .copy:hover { color: var(--blue); background: var(--surface-2); }
+  .empty { font-family: var(--serif); font-style: normal; color: var(--faint); padding: 40px 0; text-align: center; }
+
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(14px); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 11px; font-size: 13px; font-weight: 500; opacity: 0; transition: .25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+
+<div class="login" id="login" hidden>
+  <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+  <div class="tag">your notes, in one place</div>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="you@work.com" autocomplete="email" required>
+    <input type="password" id="pass" placeholder="password" autocomplete="current-password" required>
+    <button type="submit">Sign in</button>
+  </form>
+  <div class="msg" id="msg"></div>
+  <div class="foot">invite-only beta</div>
+</div>
+
+<div class="app" id="app" hidden>
+  <div class="top">
+    <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+    <div class="who"><span id="acct"></span><button class="out" id="signOut">Sign out</button></div>
+  </div>
+
+  <p class="lede" id="lede"></p>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search your thoughts…">
+    <select id="fTag"><option value="">All tags</option></select>
+    <button class="copyall" id="copyAll"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy all</button>
+  </div>
+  <div class="sub" id="count"></div>
+
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty" hidden></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CFG = { url: "https://zdfngfbnmtfgbcparlxs.supabase.co", key: "sb_publishable_jwNMOq9RjNpLvjj4Vt205A_INzQXgtx" };
+  const H = (token) => ({ "Content-Type": "application/json", apikey: CFG.key, Authorization: "Bearer " + (token || CFG.key) });
+  async function emsg(r) { const d = await r.json().catch(() => ({})); return d.msg || d.error_description || d.message || "Something went wrong"; }
+  async function signIn(email, password) { const r = await fetch(CFG.url + "/auth/v1/token?grant_type=password", { method: "POST", headers: H(), body: JSON.stringify({ email, password }) }); if (!r.ok) throw new Error(await emsg(r)); return r.json(); }
+  async function refresh(rt) { const r = await fetch(CFG.url + "/auth/v1/token?grant_type=refresh_token", { method: "POST", headers: H(), body: JSON.stringify({ refresh_token: rt }) }); if (!r.ok) throw new Error("expired"); return r.json(); }
+  async function listNotes(token) { const r = await fetch(CFG.url + "/rest/v1/notes?select=id,text,tag,ts,block_start&order=ts.desc", { headers: H(token) }); if (!r.ok) throw new Error("load failed"); return r.json(); }
+
+  const getSess = () => { try { return JSON.parse(localStorage.getItem("oto_web_session") || "null"); } catch (e) { return null; } };
+  const setSess = (s) => { try { localStorage.setItem("oto_web_session", JSON.stringify(s)); } catch (e) {} };
+  const clearSess = () => { try { localStorage.removeItem("oto_web_session"); } catch (e) {} };
+  async function validToken() {
+    let s = getSess(); if (!s) return null;
+    if (s.expires_at && s.expires_at - Date.now() > 60000) return s;
+    if (s.refresh_token) { try { const d = await refresh(s.refresh_token); s = sessFrom(d, s.email); setSess(s); return s; } catch (e) { return null; } }
+    return null;
+  }
+  const sessFrom = (d, fallbackEmail) => ({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Date.now() + ((d.expires_in || 3600) * 1000), email: (d.user && d.user.email) || fallbackEmail });
+
+  const $ = (id) => document.getElementById(id);
+  function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("show"); clearTimeout(window.__t); window.__t = setTimeout(() => el.classList.remove("show"), 1800); }
+  function msg(t, bad) { const m = $("msg"); m.textContent = t || ""; m.classList.toggle("bad", !!bad); }
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtDate = (ts) => { const d = new Date(Number(ts)); const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]; return `${d.getDate()} ${mo} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+  const promptFrom = (t) => `My own starting thought:\n"${t}"\n\nBuild on this as my premise — pressure-test it, extend it, and show me where it's weakest. Don't replace my thinking.`;
+
+  let notes = [];
+  function showLogin() { $("login").hidden = false; $("app").hidden = true; }
+  function showApp(s) { $("login").hidden = true; $("app").hidden = false; $("acct").textContent = s.email || ""; }
+
+  async function boot() {
+    const s = await validToken();
+    if (s) { showApp(s); loadNotes(s); } else { showLogin(); $("email").focus(); }
+  }
+  async function loadNotes(s) {
+    try {
+      notes = (await listNotes(s.access_token)).map((n) => ({ id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts) }));
+      buildTags(); render();
+    } catch (e) { clearSess(); showLogin(); }
+  }
+  function buildTags() {
+    const seen = new Set(), tags = [];
+    notes.forEach((n) => { if (n.tag && !seen.has(n.tag)) { seen.add(n.tag); tags.push(n.tag); } });
+    $("fTag").innerHTML = '<option value="">All tags</option>' + tags.map((t) => `<option>${esc(t)}</option>`).join("");
+    const total = notes.length;
+    $("lede").innerHTML = total ? `You've kept <span class="n">${total}</span> ${total === 1 ? "thought" : "thoughts"} of your own.` : "No thoughts yet — they'll appear here as you keep them.";
+  }
+  function visible() {
+    const q = $("search").value.trim().toLowerCase();
+    const tag = $("fTag").value;
+    return notes.filter((n) => (!tag || n.tag === tag) && (!q || n.text.toLowerCase().includes(q)));
+  }
+  function render() {
+    const v = visible();
+    $("count").textContent = v.length === 1 ? "1 note" : v.length + " notes";
+    $("empty").hidden = v.length > 0;
+    $("empty").textContent = notes.length === 0 ? "Nothing here yet." : "Nothing matches that.";
+    $("copyAll").hidden = v.length === 0;
+    $("list").innerHTML = v.map((n) => `
+      <div class="note">
+        <button class="copy" data-id="${n.id}" title="Copy as a prompt" aria-label="Copy as a prompt"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+        <div class="when">${fmtDate(n.ts)}</div>
+        <div class="text">${esc(n.text)}</div>
+        ${n.tag ? `<span class="tag">${esc(n.tag)}</span>` : ""}
+      </div>`).join("");
+  }
+
+  // events
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = $("email").value.trim(), password = $("pass").value;
+    if (!email || !password) return;
+    msg("Signing in…");
+    try { const d = await signIn(email, password); const s = sessFrom(d, email); setSess(s); msg(""); $("pass").value = ""; showApp(s); loadNotes(s); }
+    catch (err) { msg(err.message || "Wrong email or password.", true); }
+  });
+  $("signOut").addEventListener("click", () => { clearSess(); notes = []; showLogin(); });
+  $("search").addEventListener("input", render);
+  $("fTag").addEventListener("change", render);
+  $("list").addEventListener("click", async (e) => {
+    const b = e.target.closest(".copy"); if (!b) return;
+    const n = notes.find((x) => String(x.id) === String(b.dataset.id)); if (!n) return;
+    try { await navigator.clipboard.writeText(promptFrom(n.text)); toast("Copied as a prompt."); } catch (err) { toast("Copy blocked — select manually."); }
+  });
+  $("copyAll").addEventListener("click", async () => {
+    const v = visible(); if (!v.length) return;
+    try { await navigator.clipboard.writeText(v.map((n) => n.text).join("\n\n")); toast("Copied " + (v.length === 1 ? "1 note" : v.length + " notes")); } catch (err) { toast("Copy blocked."); }
+  });
+
+  boot();
+</script>
+</body>
+</html>

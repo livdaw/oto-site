@@ -1,6 +1,7 @@
 <meta charset="utf-8">
 <meta name="claude:viewport-fit-sides" content="cover">
 <title>oto</title>
+<link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400&display=swap">
@@ -13,7 +14,11 @@
     color-scheme: light;
   }
   * { box-sizing: border-box; }
+  html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: none; scroll-behavior: auto; } }
   body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .signin-link { position: fixed; top: 20px; right: 24px; z-index: 20; font-size: 13px; color: var(--muted); text-decoration: none; }
+  .signin-link:hover { color: var(--ink); }
 
   /* face */
   .face .op, .face .cl { transition: opacity .12s ease; }
@@ -23,16 +28,16 @@
   @media (prefers-reduced-motion: reduce) { .face .op, .face .cl { transition: none; } }
 
   /* beats */
-  section { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-    padding: 90px max(20px, env(safe-area-inset-left,0px)); }
-  .hero { min-height: 92vh; gap: 0; }
+  section { min-height: 100vh; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: 44px max(20px, env(safe-area-inset-left,0px)); }
+  .hero { gap: 0; }
   .hero .bigface { height: clamp(78px, 15vw, 128px); width: auto; aspect-ratio: 300/130; color: var(--blue); display: block; }
   .hero .slogan { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 5.4vw, 50px); letter-spacing: -.02em; line-height: 1.12; margin: 40px auto 0; max-width: 15ch; text-wrap: balance; }
   .cue { margin-top: 56px; color: var(--faint); font-size: 20px; animation: bob 2.4s ease-in-out infinite; }
   @keyframes bob { 0%,100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(5px); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .cue { animation: none; } }
 
-  .beat { min-height: 76vh; }
+  .beat { }
   .beat h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 6vw, 56px); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
 
   /* reveal on scroll */
@@ -86,6 +91,8 @@
   <symbol id="g-t" viewBox="0 0 56 104"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M28 8 L28 80 Q28 97 46 95"/><path d="M9 30 L47 30"/></g></symbol>
 </svg>
 
+<a class="signin-link" href="app.html">sign in</a>
+
 <section class="hero">
   <svg class="bigface face" id="heroFace" viewBox="0 0 300 130" aria-label="oto">
     <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
@@ -120,15 +127,6 @@
   </div>
 </section>
 
-<footer>
-  <svg class="mk" viewBox="0 0 300 130" aria-label="oto">
-    <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/>
-      <path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/>
-    </g>
-  </svg>
-  <span>a quiet place for original thoughts</span>
-</footer>
 
 <script>
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
