@@ -47,6 +47,7 @@
   .pillar p { color: var(--muted); font-size: 15px; margin: 10px 0 0; }
 
   /* dark band */
+  .bandwrap { min-height: 100vh; }
   .band { background: var(--stage); color: #f4efe9; border-radius: 24px; padding: 76px 28px; max-width: 760px; width: 100%; }
   .band .restface { height: 84px; width: auto; aspect-ratio: 300/130; color: var(--sky); display: block; margin: 0 auto; }
   .band h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 4vw, 34px); margin: 30px auto 0; max-width: 22ch; line-height: 1.25; text-wrap: balance; }
@@ -107,7 +108,7 @@
   <div class="squeeze" id="squeeze" aria-hidden="true"></div>
 </section>
 
-<section>
+<section class="bandwrap">
   <div class="band reveal">
     <svg class="restface" viewBox="0 0 300 130" aria-hidden="true">
       <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
