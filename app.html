@@ -163,6 +163,12 @@
   .snote { font-size: 13px; color: var(--faint); margin-top: 18px; line-height: 1.6; }
   .snote code { font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; color: var(--muted); }
   .snote strong { color: var(--ink); font-weight: 600; }
+  .mcp { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 20px; }
+  .mcp-h { font-size: 15px; margin: 0 0 4px; }
+  .codewrap { position: relative; margin: 12px 0 4px; }
+  .code { font-family: var(--mono); font-size: 12px; line-height: 1.55; background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 16px; padding-top: 38px; overflow-x: auto; white-space: pre; margin: 0; }
+  .codecopy { position: absolute; top: 8px; right: 8px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--blue); font-size: 11px; font-weight: 500; padding: 4px 11px; border-radius: 8px; }
+  .codecopy:hover { border-color: var(--blue); }
 
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(14px); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 11px; font-size: 13px; font-weight: 500; opacity: 0; transition: .25s; pointer-events: none; }
   .toast.show { opacity: 1; transform: translateX(-50%); }
@@ -289,6 +295,13 @@
     <div class="srow"><span class="k">Signed in as</span><span class="v" id="acct"></span></div>
     <div class="srow"><span class="k">Account</span><button class="out" id="signOut">Sign out</button></div>
     <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your thoughts and today's reflection, synced to your account.</p>
+
+    <div class="mcp">
+      <h3 class="mcp-h">Connect Claude to your thoughts</h3>
+      <p class="snote">Run oto's connector (MCP) so Claude can read and add your thoughts — your originals become the premise it builds on. Needs <strong>Node 18+</strong> and the <code>oto-mcp</code> server folder.</p>
+      <div class="codewrap"><button class="codecopy" id="mcpCopy">Copy</button><pre class="code" id="mcpCode"></pre></div>
+      <p class="snote">Claude Desktop → <strong>Settings → Developer → Edit Config</strong>, paste this, set your password, and restart. In Claude Code: <code>claude mcp add</code>. Point <code>args</code> at your own <code>oto-mcp/index.js</code>.</p>
+    </div>
   </section>
 </div>
 
@@ -355,7 +368,13 @@
   let notes = [], tags = [], session = null, usage = null, editingId = null, blockNames = {};
 
   function showLogin() { $("login").hidden = false; $("app").hidden = true; }
-  function showApp(s) { $("login").hidden = true; $("app").hidden = false; $("acct").textContent = s.email || ""; }
+  function mcpConfig(email) {
+    return JSON.stringify({ mcpServers: { oto: { command: "node", args: ["/path/to/oto-mcp/index.js"], env: { OTO_EMAIL: email, OTO_PASSWORD: "your-oto-password" } } } }, null, 2);
+  }
+  function showApp(s) {
+    $("login").hidden = true; $("app").hidden = false; $("acct").textContent = s.email || "";
+    $("mcpCode").textContent = mcpConfig(s.email || "you@work.com");
+  }
 
   async function boot() {
     session = await validToken();
@@ -552,6 +571,7 @@
     try { localStorage.setItem("oto_web_theme", next); } catch (e) {}
   });
   $("signOut").addEventListener("click", () => { clearSess(); notes = []; usage = null; showLogin(); });
+  $("mcpCopy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("mcpCode").textContent); toast("Config copied."); } catch (e) { toast("Copy blocked — select manually."); } });
   // download the extension via a short-lived signed URL from a private Storage bucket (login-gated)
   async function downloadExtension() {
     const s = await validToken(); if (!s) { showLogin(); return; }
