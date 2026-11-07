@@ -252,7 +252,7 @@
   <section class="panel" id="settings" hidden>
     <div class="srow"><span class="k">Signed in as</span><span class="v" id="acct"></span></div>
     <div class="srow"><span class="k">Account</span><button class="out" id="signOut">Sign out</button></div>
-    <div class="srow"><span class="k">Browser extension</span><a class="out" id="dlExt" href="oto-extension.zip" download>Download · v0.1.0</a></div>
+    <div class="srow"><span class="k">Browser extension</span><button class="out" id="dlExt">Download · v0.1.0</button></div>
     <p class="snote">Unzip it, then open <code>chrome://extensions</code> or <code>edge://extensions</code>, turn on <strong>Developer mode</strong>, and choose <strong>Load unpacked</strong> → the unzipped folder. It signs in with this same account.</p>
     <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your thoughts and today's reflection, synced to your account.</p>
   </section>
@@ -461,6 +461,18 @@
     try { localStorage.setItem("oto_web_theme", next); } catch (e) {}
   });
   $("signOut").addEventListener("click", () => { clearSess(); notes = []; usage = null; showLogin(); });
+  // download the extension via a short-lived signed URL from a private Storage bucket (login-gated)
+  async function downloadExtension() {
+    const s = await validToken(); if (!s) { showLogin(); return; }
+    try {
+      const r = await fetch(CFG.url + "/storage/v1/object/sign/extension/oto-extension.zip", { method: "POST", headers: H(s.access_token), body: JSON.stringify({ expiresIn: 120 }) });
+      if (!r.ok) throw new Error("not available");
+      const d = await r.json();
+      const a = document.createElement("a"); a.href = CFG.url + "/storage/v1" + d.signedURL + "&download=oto-extension.zip"; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove(); toast("Downloading…");
+    } catch (e) { toast("Download isn't available yet."); }
+  }
+  $("dlExt").addEventListener("click", downloadExtension);
   $("search").addEventListener("input", renderNotes);
   $("fTag").addEventListener("change", renderNotes);
   $("tSend").addEventListener("click", () => keep("tText", "tTag"));
