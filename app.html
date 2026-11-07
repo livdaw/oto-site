@@ -50,6 +50,7 @@
   .app { max-width: 620px; margin: 0 auto; padding: 24px 20px 90px; }
   .top { display: flex; align-items: flex-start; justify-content: space-between; }
   .top .brand { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .top .home { display: inline-block; line-height: 0; color: var(--ink); }
   .top .mk { height: 26px; width: 60px; color: var(--ink); }
   .top .brand-tag { font-size: 12px; color: var(--muted); }
   .top .tools { display: flex; align-items: center; gap: 14px; }
@@ -149,7 +150,7 @@
 <div class="app" id="app" hidden>
   <div class="top">
     <div class="brand">
-      <svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle class="eye" cx="55" cy="71" r="27"/><path class="lid" d="M33 71 Q55 83 77 71"/><circle class="eye" cx="245" cy="71" r="27"/><path class="lid" d="M223 71 Q245 83 267 71"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg>
+      <a class="home" href="index.html" aria-label="oto — back to home" title="Back to oto"><svg class="wordmark mk" viewBox="0 0 300 130" aria-label="oto"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle class="eye" cx="55" cy="71" r="27"/><path class="lid" d="M33 71 Q55 83 77 71"/><circle class="eye" cx="245" cy="71" r="27"/><path class="lid" d="M223 71 Q245 83 267 71"/><path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/></g></svg></a>
       <div class="brand-tag">a quiet place for original thoughts</div>
     </div>
     <div class="tools"><button class="theme" id="theme" title="Toggle theme" aria-label="Toggle theme">◐</button></div>
