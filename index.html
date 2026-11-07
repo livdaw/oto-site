@@ -1,0 +1,188 @@
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>oto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+  /* oto landing — calm, one beat at a time. Face + slogan, the rest reveals on scroll. Light, one blue. */
+  :root {
+    --paper: #f7f5f1; --ink: #17130f; --muted: #6f685f; --faint: #9a9288; --line: #e7e2da;
+    --sky: #8fc6eb; --blue: #2f7fb0; --stage: #15120f;
+    --sans: "Instrument Sans", system-ui, sans-serif; --serif: "Newsreader", Georgia, serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  /* face */
+  .face .op, .face .cl { transition: opacity .12s ease; }
+  .face .cl { opacity: 0; }
+  .face.shut .op { opacity: 0; }
+  .face.shut .cl { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .face .op, .face .cl { transition: none; } }
+
+  /* beats */
+  section { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: 90px max(20px, env(safe-area-inset-left,0px)); }
+  .hero { min-height: 92vh; gap: 0; }
+  .hero .bigface { height: clamp(78px, 15vw, 128px); width: auto; aspect-ratio: 300/130; color: var(--blue); display: block; }
+  .hero .slogan { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 5.4vw, 50px); letter-spacing: -.02em; line-height: 1.12; margin: 40px auto 0; max-width: 15ch; text-wrap: balance; }
+  .cue { margin-top: 56px; color: var(--faint); font-size: 20px; animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 0%,100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(5px); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .cue { animation: none; } }
+
+  .beat { min-height: 76vh; }
+  .beat h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 6vw, 56px); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+
+  /* reveal on scroll */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+
+  /* pillars */
+  .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 880px; width: 100%; text-align: left; }
+  .pillar .n { font-family: var(--mono); font-size: 12px; color: var(--blue); }
+  .pillar h3 { font-family: var(--serif); font-weight: 500; font-size: 22px; margin: 8px 0 0; }
+  .pillar p { color: var(--muted); font-size: 15px; margin: 10px 0 0; }
+
+  /* dark band */
+  .band { background: var(--stage); color: #f4efe9; border-radius: 24px; padding: 76px 28px; max-width: 760px; width: 100%; }
+  .band .restface { height: 84px; width: auto; aspect-ratio: 300/130; color: var(--sky); display: block; margin: 0 auto; }
+  .band h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 4vw, 34px); margin: 30px auto 0; max-width: 22ch; line-height: 1.25; text-wrap: balance; }
+  .band p { color: #9aa6b0; margin: 16px auto 0; max-width: 46ch; font-size: 15px; }
+  .band .cycler { color: var(--sky); display: inline-block; min-width: 4.4em; text-align: left; transition: opacity .22s ease; }
+
+  /* stylised streams: answers arriving, and thoughts squeezed between them */
+  .chatsim, .squeeze { width: min(380px, 92%); height: 186px; margin: 30px auto 0; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: #fff;
+    -webkit-mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(transparent, #000 16%, #000 84%, transparent); }
+  .track { display: flex; flex-direction: column; gap: 11px; padding: 16px; animation: stream 15s linear infinite; }
+  @keyframes stream { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .track { animation: none; } }
+  .ans { align-self: flex-start; max-width: 92%; background: #f2efe9; border-radius: 14px; padding: 9px 14px; font-family: var(--sans); font-size: 13.5px; line-height: 1.35; color: #8c867c; }
+  .thought { align-self: flex-end; width: 44%; height: 6px; border-radius: 4px; background: var(--sky); animation: try 3.2s ease-in-out infinite; }
+  @keyframes try { 0%, 100% { height: 6px; opacity: .5; } 50% { height: 15px; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .thought { animation: none; } }
+
+  /* close */
+  .close h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 5vw, 44px); letter-spacing: -.02em; margin: 0; max-width: 18ch; text-wrap: balance; }
+  .close .soon { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--faint); margin-top: 22px; }
+
+  footer { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 36px 20px 56px; color: var(--faint); font-size: 12.5px; }
+  footer .mk { height: 15px; width: 34px; color: var(--ink); display: block; }
+
+  @media (max-width: 720px) { .pillars { grid-template-columns: 1fr; gap: 26px; max-width: 420px; } }
+
+  /* logo letterforms inside the slogan */
+  .go, .gt { display: inline-block; vertical-align: baseline; margin: 0 .01em; }
+  .go { width: .52em; height: .52em; }
+  .gt { width: .4em; height: .72em; }
+  .w { white-space: nowrap; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="g-o" viewBox="0 0 72 72"><circle cx="36" cy="36" r="28" fill="none" stroke="currentColor" stroke-width="16"/></symbol>
+  <symbol id="g-t" viewBox="0 0 56 104"><g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><path d="M28 8 L28 80 Q28 97 46 95"/><path d="M9 30 L47 30"/></g></symbol>
+</svg>
+
+<section class="hero">
+  <svg class="bigface face" id="heroFace" viewBox="0 0 300 130" aria-label="oto">
+    <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+      <circle class="op" cx="55" cy="71" r="27"/><path class="cl" d="M29 70 Q55 86 81 70"/>
+      <circle class="op" cx="245" cy="71" r="27"/><path class="cl" d="M219 70 Q245 86 271 70"/>
+      <path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/>
+    </g>
+  </svg>
+  <h1 class="slogan">a quiet place for original thoughts</h1>
+  <div class="cue">↓</div>
+</section>
+
+<section class="beat reveal">
+  <h2>In today's world, there's a lot of answers.</h2>
+  <div class="chatsim" id="chatsim" aria-hidden="true"></div>
+</section>
+
+<section class="beat reveal">
+  <h2>Leaving less room for thoughts.</h2>
+  <div class="squeeze" id="squeeze" aria-hidden="true"></div>
+</section>
+
+<section>
+  <div class="band reveal">
+    <svg class="restface" viewBox="0 0 300 130" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M29 70 Q55 86 81 70"/><path d="M219 70 Q245 86 271 70"/>
+        <path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/>
+      </g>
+    </svg>
+    <h2>Instead of <span class="cycler" id="cycler">answering,</span><br>oto listens.</h2>
+  </div>
+</section>
+
+<section class="close reveal">
+  <div class="soon">COMING SOON · OTO.ONLINE</div>
+</section>
+
+<footer>
+  <svg class="mk" viewBox="0 0 300 130" aria-label="oto">
+    <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="55" cy="71" r="27"/><circle cx="245" cy="71" r="27"/>
+      <path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/>
+    </g>
+  </svg>
+  <span>a quiet place for original thoughts</span>
+</footer>
+
+<script>
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // blink the hero face
+  const hero = document.getElementById("heroFace");
+  (function loop() { if (reduce) return; setTimeout(() => { hero.classList.add("shut"); setTimeout(() => hero.classList.remove("shut"), 150); loop(); }, 1800 + Math.random() * 2400); })();
+
+  // render o and t as the logo letterforms across the display headings
+  function glyph(id, cls) { const s = document.createElementNS("http://www.w3.org/2000/svg", "svg"); s.setAttribute("class", cls); const u = document.createElementNS("http://www.w3.org/2000/svg", "use"); u.setAttribute("href", "#" + id); s.appendChild(u); return s; }
+  function otoize(root) {
+    const skip = (el) => { let p = el; while (p && p !== root) { if (p.classList && (p.classList.contains("cycler") || p.classList.contains("go") || p.classList.contains("gt"))) return true; p = p.parentElement; } return false; };
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    const nodes = []; while (walker.nextNode()) { const n = walker.currentNode; if (/[ot]/.test(n.nodeValue) && !skip(n.parentElement)) nodes.push(n); }
+    nodes.forEach((node) => {
+      const frag = document.createDocumentFragment();
+      node.nodeValue.split(/(\s+)/).forEach((part) => {
+        if (/^\s*$/.test(part) || !/[ot]/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+        const w = document.createElement("span"); w.className = "w";
+        for (const ch of part) { if (ch === "o") w.appendChild(glyph("g-o", "go")); else if (ch === "t") w.appendChild(glyph("g-t", "gt")); else w.appendChild(document.createTextNode(ch)); }
+        frag.appendChild(w);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+  document.querySelectorAll(".slogan, .beat h2, .band h2").forEach(otoize);
+
+  // classic AI filler, endlessly arriving (never anything specific)
+  const LINES = ["Sure, that's a great idea.", "Here's what I'd suggest.", "Here are the top ten things.", "Great question — let me break it down.", "Absolutely. Here's how.", "Here's a quick summary.", "I'd be happy to help with that.", "Here are a few options to consider."];
+  const sim = document.getElementById("chatsim");
+  if (sim) {
+    const block = () => LINES.map((l) => `<div class="ans">${l}</div>`).join("");
+    sim.innerHTML = `<div class="track"${reduce ? ' style="animation:none"' : ""}>${block()}${block()}</div>`;
+  }
+  // the same flow, with thoughts squeezed thin between the answers
+  const sq = document.getElementById("squeeze");
+  if (sq) {
+    const block = () => LINES.map((l, i) => `<div class="ans">${l}</div>` + (i % 2 ? '<div class="thought"></div>' : "")).join("");
+    sq.innerHTML = `<div class="track"${reduce ? ' style="animation:none"' : ""}>${block()}${block()}</div>`;
+  }
+
+  // verb cycler — answering / solving / proving / doing → oto listens
+  const verbs = ["answering,", "solving,", "proving,", "doing,"];
+  const cyc = document.getElementById("cycler");
+  if (cyc && !reduce) { let vi = 0; setInterval(() => { vi = (vi + 1) % verbs.length; cyc.style.opacity = "0"; setTimeout(() => { cyc.textContent = verbs[vi]; cyc.style.opacity = "1"; }, 220); }, 1700); }
+
+  // reveal on scroll
+  const reveals = document.querySelectorAll(".reveal");
+  if (reduce) { reveals.forEach((el) => el.classList.add("in")); }
+  else {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.2 });
+    reveals.forEach((el) => io.observe(el));
+  }
+</script>
