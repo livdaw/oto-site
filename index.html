@@ -209,7 +209,7 @@
   }
 
   // verb cycler — answering / solving / proving / doing → oto listens
-  const verbs = ["answering,", "solving,", "proving,", "doing,"];
+  const verbs = ["answering,", "solving,", "proving,", "doing,", "creating,", "ideating,", "generating,", "summarising,", "hallucinating,", "deciding,"];
   const cyc = document.getElementById("cycler");
   if (cyc && !reduce) { let vi = 0; setInterval(() => { vi = (vi + 1) % verbs.length; cyc.style.opacity = "0"; setTimeout(() => { cyc.textContent = verbs[vi]; cyc.style.opacity = "1"; }, 220); }, 1700); }
 
