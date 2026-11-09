@@ -338,6 +338,8 @@
     return (await r.json())[0];
   }
   async function getUsage(token, day) { try { const r = await fetch(CFG.url + "/rest/v1/usage?day=eq." + day + "&select=seconds,prompts,downtime,by_host,streak&limit=1", { headers: H(token) }); if (!r.ok) return null; const rows = await r.json(); return rows[0] || null; } catch (e) { return null; } }
+  async function getUsageDesktop(token, day) { try { const r = await fetch(CFG.url + "/rest/v1/usage_desktop?day=eq." + day + "&select=seconds,prompts,by_app&limit=1", { headers: H(token) }); if (!r.ok) return null; const rows = await r.json(); return rows[0] || null; } catch (e) { return null; } }
+  const HOST_NAMES = { "claude.ai": "Claude", "chatgpt.com": "ChatGPT", "chat.openai.com": "ChatGPT", "gemini.google.com": "Gemini", "perplexity.ai": "Perplexity", "www.perplexity.ai": "Perplexity", "copilot.microsoft.com": "Copilot" };
   async function listBlocks(token) { try { const r = await fetch(CFG.url + "/rest/v1/blocks?select=block_start,name", { headers: H(token) }); if (!r.ok) return []; return r.json(); } catch (e) { return []; } }
   async function upsertBlockName(token, block_start, name) { const r = await fetch(CFG.url + "/rest/v1/blocks", { method: "POST", headers: Object.assign(H(token), { Prefer: "resolution=merge-duplicates,return=minimal" }), body: JSON.stringify({ block_start, name }) }); if (!r.ok) throw new Error("block save failed"); }
 
@@ -365,7 +367,7 @@
   const promptFrom = (t) => `My own starting thought:\n"${t}"\n\nBuild on this as my premise — pressure-test it, extend it, and show me where it's weakest. Don't replace my thinking.`;
 
   const fmtClock = (ts) => { const d = new Date(Number(ts)); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
-  let notes = [], tags = [], session = null, usage = null, editingId = null, blockNames = {};
+  let notes = [], tags = [], session = null, usage = null, usageDesktop = null, editingId = null, blockNames = {};
 
   function showLogin() { $("login").hidden = false; $("app").hidden = true; }
   function mcpConfig(email) {
@@ -396,30 +398,38 @@
     } catch (e) { clearSess(); showLogin(); }
   }
   async function loadUsage() {
-    usage = await getUsage(session.access_token, dayKey());
+    const day = dayKey();
+    [usage, usageDesktop] = await Promise.all([getUsage(session.access_token, day), getUsageDesktop(session.access_token, day)]);
     renderToday();
   }
 
   function renderToday() {
     const total = notes.length;
-    const u = usage;
+    // combine browser usage + desktop usage (from the Mac app) so every view shows the same totals
+    const ub = usage || {}, ud = usageDesktop || {};
+    const hasUsage = !!(usage || usageDesktop);
+    const uSeconds = (Number(ub.seconds) || 0) + (Number(ud.seconds) || 0);
+    const uPrompts = (Number(ub.prompts) || 0) + (Number(ud.prompts) || 0);
+    const uDown = Number(ub.downtime) || 0;
+    const uStreak = ub.streak || 0;
+    const merged = {};
+    for (const [h, s] of Object.entries(ub.by_host || {})) { const n = HOST_NAMES[h] || h; merged[n] = (merged[n] || 0) + (Number(s) || 0); }
+    for (const [a, s] of Object.entries(ud.by_app || {})) { merged[a] = (merged[a] || 0) + (Number(s) || 0); }
     const todayCount = notes.filter((n) => { const d = new Date(n.ts), t = new Date(); return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate(); }).length;
     $("lede").innerHTML = todayCount ? `You've kept <span class="n">${todayCount}</span> ${todayCount === 1 ? "thought" : "thoughts"} to yourself today.` : "No thoughts kept yet today — they'll appear as you keep them.";
     otoize($("lede"));   // the reflection carries the logo letterforms too
 
-    if (u) {
+    if (hasUsage) {
       $("bars").hidden = false;
-      $("aiTime").textContent = hm(u.seconds);
-      $("downTime").textContent = mins(u.downtime);
-      const sec = Number(u.seconds) || 0, down = Number(u.downtime) || 0;
-      $("downFill").style.width = (sec + down > 0 ? Math.round(down / (sec + down) * 100) : 0) + "%";
-      $("prompts").textContent = Number(u.prompts) || 0;
+      $("aiTime").textContent = hm(uSeconds);
+      $("downTime").textContent = mins(uDown);
+      $("downFill").style.width = (uSeconds + uDown > 0 ? Math.round(uDown / (uSeconds + uDown) * 100) : 0) + "%";
+      $("prompts").textContent = uPrompts;
       $("ots").textContent = total;
-      const p = Number(u.prompts) || 0;
-      $("otFill").style.width = (p + total > 0 ? Math.round(total / (p + total) * 100) : 0) + "%";
-      if (u.streak) { $("streak").hidden = false; $("streak").textContent = `${u.streak}-day thought streak`; } else $("streak").hidden = true;
+      $("otFill").style.width = (uPrompts + total > 0 ? Math.round(total / (uPrompts + total) * 100) : 0) + "%";
+      if (uStreak) { $("streak").hidden = false; $("streak").textContent = `${uStreak}-day thought streak`; } else $("streak").hidden = true;
 
-      const hosts = u.by_host && typeof u.by_host === "object" ? Object.entries(u.by_host).sort((a, b) => b[1] - a[1]) : [];
+      const hosts = Object.entries(merged).sort((a, b) => b[1] - a[1]);
       const max = hosts.length ? hosts[0][1] : 1;
       $("hosts").innerHTML = hosts.length
         ? hosts.map(([h, s]) => `<div class="host"><div class="hl"><span>${esc(h)}</span><span class="t">${mins(s)}</span></div><div class="hbar" style="width:${Math.max(6, Math.round(s / max * 100))}%"></div></div>`).join("")
