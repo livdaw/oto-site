@@ -385,6 +385,11 @@
     const d = new Date();
     $("date").textContent = `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
     await Promise.all([loadNotes(), loadUsage()]);
+    // keep the dashboard live (it was showing a stale snapshot vs the extension/desktop)
+    if (!window._otoRefresh) {
+      window._otoRefresh = setInterval(() => { if (session) { loadNotes(); loadUsage(); } }, 60000);
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && session) { loadNotes(); loadUsage(); } });
+    }
   }
 
   async function loadNotes() {
@@ -425,8 +430,8 @@
       $("downTime").textContent = mins(uDown);
       $("downFill").style.width = (uSeconds + uDown > 0 ? Math.round(uDown / (uSeconds + uDown) * 100) : 0) + "%";
       $("prompts").textContent = uPrompts;
-      $("ots").textContent = total;
-      $("otFill").style.width = (uPrompts + total > 0 ? Math.round(total / (uPrompts + total) * 100) : 0) + "%";
+      $("ots").textContent = todayCount;   // original thoughts = kept today (matches the extension)
+      $("otFill").style.width = (uPrompts + todayCount > 0 ? Math.round(todayCount / (uPrompts + todayCount) * 100) : 0) + "%";
       if (uStreak) { $("streak").hidden = false; $("streak").textContent = `${uStreak}-day thought streak`; } else $("streak").hidden = true;
 
       const hosts = Object.entries(merged).sort((a, b) => b[1] - a[1]);
