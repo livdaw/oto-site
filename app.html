@@ -405,6 +405,7 @@
   async function loadUsage() {
     const day = dayKey();
     [usage, usageDesktop] = await Promise.all([getUsage(session.access_token, day), getUsageDesktop(session.access_token, day)]);
+    console.log("oto-debug", "day=" + day, "BROWSER(usage)=", usage, "DESKTOP(usage_desktop)=", usageDesktop);
     renderToday();
   }
 
