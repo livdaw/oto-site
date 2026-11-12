@@ -1,7 +1,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
-<title>oto</title>
+<title>oto — protect your original thinking from AI</title>
+<meta name="description" content="oto is a quiet place for original thoughts. Track your AI use, schedule thinking blocks that hold your AI tools, and capture your own ideas before you reach for a prompt.">
+<link rel="canonical" href="https://otoapp.co/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://otoapp.co/">
+<meta property="og:title" content="oto — protect your original thinking from AI">
+<meta property="og:description" content="Track your AI use, schedule thinking blocks that hold your AI tools, and keep your own ideas before you reach for a prompt.">
+<meta property="og:image" content="https://otoapp.co/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="oto — protect your original thinking from AI">
+<meta name="twitter:description" content="A quiet place for original thoughts. Hold your AI tools, keep your own ideas.">
+<meta name="twitter:image" content="https://otoapp.co/og.png">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,6 +159,29 @@
 </section>
 
 
+<style>
+.join{max-width:460px;margin:0 auto;text-align:center;padding:0 20px}
+.join-h{font-family:var(--serif);font-size:clamp(28px,5vw,40px);margin:0 0 10px;color:var(--ink)}
+.join-sub{color:var(--muted);font-size:15px;margin:0 0 22px;line-height:1.5}
+.waitform{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.waitform input{flex:1;min-width:220px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-size:15px;background:#fff;color:var(--ink);font-family:var(--serif)}
+.waitform input:focus{outline:2px solid var(--blue);outline-offset:1px}
+.waitform button{padding:13px 20px;border:0;border-radius:12px;background:var(--sky);color:#14110d;font-weight:600;font-size:15px;cursor:pointer}
+.waitform button:hover{background:#7fbce6}
+.join-note{min-height:20px;margin-top:14px;font-size:14px;color:var(--muted)}
+</style>
+<section class="beat reveal" id="join">
+  <div class="join">
+    <p class="join-h">Join the beta.</p>
+    <p class="join-sub">Invite-only, rolling out slowly. Leave your email and we'll reach out.</p>
+    <form id="waitForm" class="waitform" novalidate>
+      <input id="waitEmail" type="email" required placeholder="you@work.com" autocomplete="email" aria-label="Email">
+      <button type="submit">Request access ↗</button>
+    </form>
+    <p class="join-note" id="waitNote" aria-live="polite"></p>
+  </div>
+</section>
+
 <button class="jump hide" id="jump" aria-label="Scroll to next section">↓</button>
 
 <script>
@@ -220,4 +254,29 @@
     const io = new IntersectionObserver((entries) => entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.2 });
     reveals.forEach((el) => io.observe(el));
   }
+
+  // waitlist → Supabase (anon insert; publishable key is client-safe)
+  (function () {
+    const SB = "https://zdfngfbnmtfgbcparlxs.supabase.co";
+    const KEY = "sb_publishable_jwNMOq9RjNpLvjj4Vt205A_INzQXgtx";
+    const f = document.getElementById("waitForm");
+    if (!f) return;
+    f.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = (document.getElementById("waitEmail").value || "").trim();
+      const note = document.getElementById("waitNote");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { note.textContent = "Enter a valid email."; return; }
+      note.textContent = "Adding you…";
+      try {
+        const r = await fetch(SB + "/rest/v1/waitlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: KEY, Authorization: "Bearer " + KEY, Prefer: "return=minimal" },
+          body: JSON.stringify({ email }),
+        });
+        if (r.ok || r.status === 201) { note.textContent = "You're on the list — we'll be in touch."; f.reset(); }
+        else if (r.status === 409) { note.textContent = "You're already on the list."; }
+        else { note.textContent = "Hmm, try again in a moment."; }
+      } catch (err) { note.textContent = "Offline — try again in a moment."; }
+    });
+  })();
 </script>

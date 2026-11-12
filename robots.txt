@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://otoapp.co/sitemap.xml
