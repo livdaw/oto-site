@@ -189,6 +189,50 @@
   .modal-actions .primary { border: 0; background: var(--sky); color: #14110d; font-weight: 600; cursor: pointer; font-size: 14px; padding: 9px 18px; border-radius: 11px; }
   .modal-actions .primary:disabled { opacity: .5; cursor: not-allowed; }
 
+  /* week: the full weekly recap */
+  .wk { display: flex; flex-direction: column; gap: 22px; }
+  .wk-face { display: block; width: 84px; height: auto; color: var(--ink); margin-bottom: 14px; }
+  .wk-title { font-family: var(--serif); font-weight: 400; font-size: clamp(26px, 4vw, 32px); letter-spacing: -.02em; line-height: 1.2; margin: 6px 0 0; text-wrap: balance; }
+  .wk-sub { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--muted); margin: 6px 0 0; }
+  .wk-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 600px) { .wk-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .wk-stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .wk-stat .k { font-size: 12px; color: var(--muted); }
+  .wk-stat .v { font-family: var(--mono); font-size: 21px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .wk-stat .d { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .wk-stat .d.up { color: var(--blue); }
+  .wk-bal-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 8px; }
+  .wk-side { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .wk-side > span { display: flex; flex-direction: column; gap: 2px; }
+  .wk-side.self { text-align: right; }
+  .wk-side small { font-size: 12.5px; color: var(--muted); }
+  .wk-side b { font-family: var(--mono); font-weight: 500; font-size: 17px; }
+  .wk-side.self b { color: var(--blue); }
+  .wk-icon { width: 26px; height: 26px; flex: none; fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .wk-icon .dot { fill: var(--muted); stroke: none; }
+  .wk-side.self .wk-icon { stroke: var(--blue); }
+  .wk-bar { display: flex; gap: 3px; height: 9px; }
+  .wk-bar i { display: block; border-radius: 5px; }
+  .wk-bar .ai { background: var(--bar); }
+  .wk-bar .you { background: var(--sky); }
+  .wk-note { font-size: 13.5px; color: var(--muted); margin: 8px 0 0; }
+  .wk-h { font-family: var(--serif); font-weight: 500; font-size: 19px; margin: 8px 0 0; }
+  .wk-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: end; }
+  .wk-day { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
+  .wk-day .n { font-family: var(--mono); font-size: 12px; }
+  .wk-day .col { width: 100%; max-width: 44px; height: 90px; display: flex; align-items: flex-end; background: var(--surface-2); border-radius: 8px; overflow: hidden; }
+  .wk-day .col i { display: block; width: 100%; background: var(--sky); }
+  .wk-day .lbl { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .wk-day .p { font-family: var(--mono); font-size: 10.5px; color: var(--faint); }
+  .wk-clouds { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 10px; }
+  .wk-cloud { position: relative; width: calc(120px * var(--s)); height: calc(76px * var(--s)); display: grid; place-items: center; }
+  .wk-cloud svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wk-cloud svg g { fill: var(--sky); opacity: .32; }
+  .wk-cloud .tx { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: calc(10px * var(--s)); line-height: 1.1; }
+  .wk-cloud .tg { font-family: var(--serif); font-size: calc(14px * var(--s)); max-width: calc(90px * var(--s)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wk-cloud .tn { font-family: var(--mono); font-size: calc(10.5px * var(--s)); color: var(--blue); margin-top: 2px; }
+  .wk-catch { font-family: var(--serif); font-size: clamp(22px, 3.4vw, 28px); line-height: 1.3; text-align: center; margin: 14px auto 0; max-width: 24ch; text-wrap: balance; }
+
   /* encrypt my thoughts */
   .enc { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 20px; }
   .enc-h { font-size: 15px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
@@ -208,6 +252,7 @@
   .note.locked .text { color: var(--faint); font-style: italic; }
 </style>
 <script src="oto-crypto.js"></script>
+<script src="oto-recap.js"></script>
 </head>
 <body>
 
@@ -240,6 +285,7 @@
   <div class="tabbar">
     <div class="tabs" id="tabs">
       <button data-tab="today" aria-current="true">Today</button>
+      <button data-tab="week" aria-current="false">Week</button>
       <button data-tab="notebook" aria-current="false">Thoughts</button>
       <button data-tab="settings" aria-current="false">Settings</button>
     </div>
@@ -287,6 +333,46 @@
   </section>
 
   <!-- NOTEBOOK -->
+  <!-- WEEK: the full weekly recap (the extension popup shows the short one) -->
+  <section class="panel wk" id="week" hidden>
+    <div class="wk-head">
+      <!-- a wink for your week: left eye open, right eye closed -->
+      <svg class="wk-face" viewBox="0 0 300 130" role="img" aria-label="oto, winking">
+        <g fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="55" cy="71" r="27"/><path d="M219 70 Q245 86 271 70"/>
+          <path d="M150 18 L150 84 Q150 104 172 102"/><path d="M131 36 L171 36"/>
+        </g>
+      </svg>
+      <div class="date" id="wkEyebrow">Your week</div>
+      <h2 class="wk-title" id="wkTitle">Gathering your week…</h2>
+      <p class="wk-sub" id="wkSub"></p>
+    </div>
+    <div class="wk-stats">
+      <div class="wk-stat"><span class="k">Thoughts kept</span><span class="v" id="wkThoughts">–</span><span class="d" id="wkdThoughts"></span></div>
+      <div class="wk-stat"><span class="k">Prompts sent</span><span class="v" id="wkPrompts">–</span><span class="d" id="wkdPrompts"></span></div>
+      <div class="wk-stat"><span class="k">Talking to AI</span><span class="v" id="wkAiT">–</span><span class="d" id="wkdAi"></span></div>
+      <div class="wk-stat"><span class="k">Talking to yourself</span><span class="v" id="wkSelfT">–</span><span class="d" id="wkdSelf"></span></div>
+    </div>
+    <div class="wk-bal" aria-label="Time talking to AI against time talking to yourself">
+      <div class="wk-bal-head">
+        <span class="wk-side"><svg class="wk-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4.5"/><circle cx="12" cy="3.5" r="1"/><circle cx="9" cy="14" r="1.2" class="dot"/><circle cx="15" cy="14" r="1.2" class="dot"/><path d="M2 13v3M22 13v3"/></svg><span><small>Time talking to AI</small><b id="wkAi">0m</b></span></span>
+        <span class="wk-side self"><span><small>Time talking to yourself</small><b id="wkSelf">0m</b></span><svg class="wk-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17h10a4 4 0 0 0 .6-7.96A5.5 5.5 0 0 0 7.1 8.3 4.35 4.35 0 0 0 7 17z"/><circle cx="6" cy="20.5" r="1.1"/><circle cx="3.2" cy="22.4" r=".7"/></svg></span>
+      </div>
+      <div class="wk-bar" aria-hidden="true"><i class="ai" id="wkBarAi"></i><i class="you" id="wkBarSelf"></i></div>
+      <p class="wk-note" id="wkNote"></p>
+    </div>
+    <h3 class="wk-h">Day by day</h3>
+    <div class="wk-days" id="wkDays"></div>
+    <p class="wk-note" id="wkBest"></p>
+    <div id="wkTagsWrap" hidden>
+      <h3 class="wk-h">What you thought about most</h3>
+      <div class="wk-clouds" id="wkClouds"></div>
+    </div>
+    <h3 class="wk-h">Your thoughts this week</h3>
+    <div class="list" id="wkList"></div>
+    <p class="wk-catch" id="wkCatch"></p>
+  </section>
+
   <section class="panel" id="notebook" hidden>
     <div class="capblock" style="margin-bottom:22px">
       <div class="capwrap">
@@ -506,6 +592,7 @@
     $("date").textContent = `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
     await refreshEnc();
     await Promise.all([loadNotes(), loadUsage()]);
+    if (location.hash === "#week") showTab("week");
     // keep the dashboard live (it was showing a stale snapshot vs the extension/desktop)
     if (!window._otoRefresh) {
       window._otoRefresh = setInterval(() => { if (session) { loadNotes(); loadUsage(); } }, 60000);
@@ -702,12 +789,65 @@
     try { const d = await signIn(email, password); session = sessFrom(d, email); setSess(session); msg(""); $("pass").value = ""; boot(); }
     catch (err) { msg(err.message || "Wrong email or password.", true); }
   });
+  function showTab(tab) {
+    ["today", "week", "notebook", "settings"].forEach((p) => { $(p).hidden = p !== tab; });
+    document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-current", String(x.dataset.tab === tab)));
+    try { history.replaceState(null, "", tab === "week" ? "#week" : location.pathname); } catch (e) {}
+    if (tab === "week") renderWeek();
+  }
   $("tabs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tab]"); if (!b) return;
-    const tab = b.dataset.tab;
-    ["today", "notebook", "settings"].forEach((p) => { $(p).hidden = p !== tab; });
-    document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-current", String(x.dataset.tab === tab)));
+    showTab(b.dataset.tab);
   });
+
+  // ---- week: the full weekly recap, from synced data (thoughts are already decrypted on this page) ----
+  async function getUsageRange(token, table, from, to) {
+    try {
+      const cols = table === "usage" ? "day,seconds,prompts,downtime,streak" : "day,seconds,prompts";
+      const r = await fetch(CFG.url + `/rest/v1/${table}?select=${cols}&day=gte.${from}&day=lte.${to}`, { headers: H(token) });
+      return r.ok ? r.json() : [];
+    } catch (e) { return []; }
+  }
+  const WK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], WK_LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  function wkDelta(el, now, before, fmt, good) {
+    const d = now - before; el.classList.toggle("up", good && d > 0);
+    el.textContent = d === 0 ? "same as the week before" : `${d > 0 ? "+" : "−"}${fmt(Math.abs(d))} on the week before`;
+  }
+  async function renderWeek() {
+    const s = await validToken(); if (!s) { showLogin(); return; }
+    const R = otoRecap, start = R.lastWeekStart(), { from, to } = R.rangeFor(start);
+    const byDay = (rows) => { const m = {}; (rows || []).forEach((r) => { m[String(r.day).slice(0, 10)] = r; }); return m; };
+    const [b, m] = await Promise.all([getUsageRange(s.access_token, "usage", from, to), getUsageRange(s.access_token, "usage_desktop", from, to)]);
+    const r = R.compute({ thoughts: notes.map((n) => ({ ts: Number(n.ts), text: n.text, tag: n.tag, locked: n.locked })), browser: byDay(b), mac: byDay(m), start });
+    const t = r.week.totals, p = r.previous.totals, bal = R.balance(t);
+    const streak = Math.max(0, ...(b || []).map((x) => Number(x.streak) || 0));
+    $("wkEyebrow").textContent = `Your week · ${R.range(r.week.start)}`;
+    $("wkTitle").textContent = R.headline(t); $("wkSub").textContent = R.compare(t, p);
+    $("wkThoughts").textContent = t.thoughts; wkDelta($("wkdThoughts"), t.thoughts, p.thoughts, String, true);
+    $("wkPrompts").textContent = t.prompts; wkDelta($("wkdPrompts"), t.prompts, p.prompts, String, false);
+    $("wkAiT").textContent = R.dur(t.seconds); wkDelta($("wkdAi"), t.seconds, p.seconds, R.dur, false);
+    $("wkSelfT").textContent = R.dur(t.downtime); wkDelta($("wkdSelf"), t.downtime, p.downtime, R.dur, true);
+    $("wkAi").textContent = R.dur(bal.ai); $("wkSelf").textContent = R.dur(bal.self);
+    $("wkBarAi").style.flex = String(bal.both ? Math.max(100 - bal.selfPct, bal.ai ? 3 : 0) : 50);
+    $("wkBarSelf").style.flex = String(bal.both ? Math.max(bal.selfPct, bal.self ? 3 : 0) : 50);
+    $("wkNote").textContent = bal.note;
+    const max = Math.max(1, ...r.week.perDay.map((d) => d.thoughts));
+    $("wkDays").innerHTML = r.week.perDay.map((d, i) => `<div class="wk-day" title="${WK_LONG.at(i)}: ${d.thoughts} thoughts, ${d.prompts} prompts"><span class="n">${d.thoughts}</span><div class="col"><i style="height:${Math.round((d.thoughts / max) * 100)}%"></i></div><span class="lbl">${WK_DAYS.at(i)}</span><span class="p">${d.prompts} pr</span></div>`).join("");
+    const best = r.week.perDay.reduce((bb, d, i) => (d.thoughts > bb.n ? { n: d.thoughts, i } : bb), { n: 0, i: -1 });
+    $("wkBest").textContent = best.n ? `Your best day was ${WK_LONG.at(best.i)}: ${best.n} ${best.n === 1 ? "thought" : "thoughts"}.${streak ? ` Thinking streak: ${streak} ${streak === 1 ? "day" : "days"}.` : ""}` : "";
+    $("wkTagsWrap").hidden = !r.week.tags.length;
+    const size = R.cloudScale(r.week.tags);
+    const cloud = '<svg viewBox="0 0 120 76" aria-hidden="true"><g><circle cx="34" cy="44" r="20"/><circle cx="56" cy="30" r="24"/><circle cx="82" cy="34" r="20"/><circle cx="98" cy="48" r="15"/><rect x="16" y="40" width="90" height="26" rx="13"/></g></svg>';
+    $("wkClouds").innerHTML = r.week.tags.map(([tag, n]) => `<div class="wk-cloud" style="--s:${size(n).toFixed(2)}" title="${esc(tag)}: ${n} ${n === 1 ? "thought" : "thoughts"}">${cloud}<span class="tx"><span class="tg">${esc(tag)}</span><span class="tn">${n}</span></span></div>`).join("");
+    const shown = r.week.thoughts.slice(0, 20);
+    $("wkList").innerHTML = shown.length ? shown.map((n) => n.locked
+      ? `<div class="note locked"><div class="when">${fmtDate(n.ts)}</div><div class="text">Encrypted thought. Unlock in Settings to read it.</div></div>`
+      : `<div class="note"><div class="when">${fmtDate(n.ts)}</div><div class="text">${esc(n.text)}</div>${n.tag ? `<span class="tag">${esc(n.tag)}</span>` : ""}</div>`).join("")
+      + (r.week.thoughts.length > shown.length ? `<p class="wk-note">And ${r.week.thoughts.length - shown.length} more in Thoughts.</p>` : "")
+      : '<div class="empty">No thoughts kept last week.</div>';
+    const phrase = R.catchphrase(t, p);
+    $("wkCatch").textContent = phrase; $("wkCatch").setAttribute("aria-label", phrase); otoize($("wkCatch"));
+  }
   $("theme").addEventListener("click", () => {
     const cur = document.documentElement.getAttribute("data-theme");
     const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
