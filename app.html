@@ -188,7 +188,26 @@
   .modal-actions .ghost:hover { color: var(--ink); }
   .modal-actions .primary { border: 0; background: var(--sky); color: #14110d; font-weight: 600; cursor: pointer; font-size: 14px; padding: 9px 18px; border-radius: 11px; }
   .modal-actions .primary:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* encrypt my thoughts */
+  .enc { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 20px; }
+  .enc-h { font-size: 15px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  .enc-state { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+  .enc-state.on { background: var(--you-soft); color: var(--blue); }
+  .enc-form { display: flex; flex-direction: column; gap: 10px; max-width: 420px; margin-top: 14px; }
+  .enc-form input[type="password"] { width: 100%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 11px 14px; font-family: var(--sans); font-size: 14px; }
+  .enc-form input[type="password"]:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+  .enc-btn { align-self: flex-start; border: 0; cursor: pointer; background: var(--sky); color: #14110d; font-weight: 600; font-size: 14px; padding: 11px 18px; border-radius: 12px; }
+  .enc-btn:hover { opacity: .92; }
+  .enc-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .enc-btn:focus-visible, .enc-quiet:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .enc-quiet { all: unset; cursor: pointer; color: var(--blue); font-weight: 500; font-size: 13.5px; }
+  .enc-quiet:hover { text-decoration: underline; }
+  .enc-msg { font-size: 13px; color: var(--muted); min-height: 18px; }
+  .enc-msg.bad { color: #c0603a; }
+  .note.locked .text { color: var(--faint); font-style: italic; }
 </style>
+<script src="oto-crypto.js"></script>
 </head>
 <body>
 
@@ -296,6 +315,36 @@
     <div class="srow"><span class="k">Account</span><button class="out" id="signOut">Sign out</button></div>
     <p class="snote">Thinking blocks, held sites and your schedule are managed in the browser extension on each device. This page is your thoughts and today's reflection, synced to your account.</p>
 
+    <div class="enc" id="enc">
+      <h3 class="enc-h">Encrypt my thoughts <span class="enc-state" id="encState">off</span></h3>
+      <p class="snote" id="encLede">Lock your thoughts with a passphrase only you know. They're encrypted on your device before they're saved, so nobody else can read them: not oto, not the database.</p>
+
+      <!-- off: turn it on -->
+      <form class="enc-form" id="encOn" hidden>
+        <input type="password" id="encPass" autocomplete="new-password" placeholder="Notebook passphrase (8+ characters)" aria-label="Notebook passphrase">
+        <input type="password" id="encPass2" autocomplete="new-password" placeholder="Type it again" aria-label="Type the passphrase again">
+        <label class="agree"><input type="checkbox" id="encAck"> I understand oto can't recover my thoughts if I forget this passphrase. There is no reset and no backup.</label>
+        <button type="submit" class="enc-btn" id="encOnBtn" disabled>Encrypt my thoughts</button>
+        <div class="enc-msg" id="encOnMsg" aria-live="polite"></div>
+      </form>
+
+      <!-- on, but this device doesn't have the key yet -->
+      <form class="enc-form" id="encUnlock" hidden>
+        <input type="password" id="encUnlockPass" autocomplete="current-password" placeholder="Notebook passphrase" aria-label="Notebook passphrase">
+        <button type="submit" class="enc-btn">Unlock on this device</button>
+        <div class="enc-msg" id="encUnlockMsg" aria-live="polite"></div>
+      </form>
+
+      <!-- on and unlocked here -->
+      <div class="enc-form" id="encReady" hidden>
+        <p class="snote" style="margin:0">This device remembers your key until you sign out.</p>
+        <button type="button" class="enc-quiet" id="encForget">Lock this device now</button>
+        <div class="enc-msg" id="encReadyMsg" aria-live="polite"></div>
+      </div>
+
+      <p class="snote" id="encSetup" hidden>Encryption needs a one-time database update before it can be turned on (<code>supabase/notes-encryption.sql</code> in the oto repo).</p>
+    </div>
+
     <div class="mcp">
       <h3 class="mcp-h">Connect Claude to your thoughts</h3>
       <p class="snote">Run oto's connector (MCP) so Claude can read and add your thoughts — your originals become the premise it builds on. Needs <strong>Node 18+</strong> and the <code>oto-mcp</code> server folder.</p>
@@ -341,6 +390,16 @@
   async function getUsageDesktop(token, day) { try { const r = await fetch(CFG.url + "/rest/v1/usage_desktop?day=eq." + day + "&select=seconds,prompts,by_app&limit=1", { headers: H(token) }); if (!r.ok) return null; const rows = await r.json(); return rows[0] || null; } catch (e) { return null; } }
   const HOST_NAMES = { "claude.ai": "Claude", "chatgpt.com": "ChatGPT", "chat.openai.com": "ChatGPT", "gemini.google.com": "Gemini", "perplexity.ai": "Perplexity", "www.perplexity.ai": "Perplexity", "copilot.microsoft.com": "Copilot" };
   async function listBlocks(token) { try { const r = await fetch(CFG.url + "/rest/v1/blocks?select=block_start,name", { headers: H(token) }); if (!r.ok) return []; return r.json(); } catch (e) { return []; } }
+  // the locked notebook key (note_keys). null = encryption off; throws "missing" if the table isn't set up yet.
+  async function getNoteLock(token) {
+    const r = await fetch(CFG.url + "/rest/v1/note_keys?select=lock&limit=1", { headers: H(token) });
+    if (!r.ok) throw new Error("missing");
+    const rows = await r.json(); return rows[0] ? rows[0].lock : null;
+  }
+  async function saveNoteLock(token, lock) {
+    const r = await fetch(CFG.url + "/rest/v1/note_keys", { method: "POST", headers: Object.assign(H(token), { Prefer: "return=minimal" }), body: JSON.stringify({ lock }) });
+    if (!r.ok) throw new Error(await emsg(r));
+  }
   async function upsertBlockName(token, block_start, name) { const r = await fetch(CFG.url + "/rest/v1/blocks", { method: "POST", headers: Object.assign(H(token), { Prefer: "resolution=merge-duplicates,return=minimal" }), body: JSON.stringify({ block_start, name }) }); if (!r.ok) throw new Error("block save failed"); }
 
   const getSess = () => { try { return JSON.parse(localStorage.getItem("oto_web_session") || "null"); } catch (e) { return null; } };
@@ -369,9 +428,70 @@
   const fmtClock = (ts) => { const d = new Date(Number(ts)); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
   let notes = [], tags = [], session = null, usage = null, usageDesktop = null, editingId = null, blockNames = {};
 
+  // ---- encryption state ----
+  // enc.status: "unknown" | "setup" (table missing) | "off" | "locked" (on, no key here) | "ready" (on, key here)
+  const enc = { status: "unknown", lock: null, key: null };
+  const KEY_STORE = "oto_web_notekey";   // { email, key }: kept until sign-out ("remember on this device")
+  const loadKey = () => { try { const v = JSON.parse(localStorage.getItem(KEY_STORE) || "null"); return v && session && v.email === session.email ? v.key : null; } catch (e) { return null; } };
+  const storeKey = (key) => { try { localStorage.setItem(KEY_STORE, JSON.stringify({ email: session.email, key })); } catch (e) {} };
+  const forgetKey = () => { try { localStorage.removeItem(KEY_STORE); } catch (e) {} };
+  const encOn = () => enc.status === "locked" || enc.status === "ready";
+
+  async function refreshEnc() {
+    try { enc.lock = await getNoteLock(session.access_token); }
+    catch (e) { enc.status = "setup"; enc.lock = null; enc.key = null; renderEnc(); return; }
+    if (!enc.lock) { enc.status = "off"; enc.key = null; }
+    else { enc.key = loadKey(); enc.status = enc.key ? "ready" : "locked"; }
+    renderEnc();
+  }
+  function renderEnc() {
+    const s = enc.status;
+    $("encState").textContent = encOn() ? (s === "ready" ? "on" : "on · locked here") : (s === "setup" ? "not set up" : "off");
+    $("encState").classList.toggle("on", encOn());
+    $("encOn").hidden = s !== "off";
+    $("encUnlock").hidden = s !== "locked";
+    $("encReady").hidden = s !== "ready";
+    $("encSetup").hidden = s !== "setup";
+    $("encLede").textContent = encOn()
+      ? (s === "ready" ? "Your thoughts are encrypted. They're locked with your passphrase before they leave this device, so nobody else can read them: not oto, not the database."
+                       : "Your thoughts are encrypted. Enter your passphrase to read and add thoughts on this device.")
+      : "Lock your thoughts with a passphrase only you know. They're encrypted on your device before they're saved, so nobody else can read them: not oto, not the database.";
+    if (session) $("mcpCode").textContent = mcpConfig(session.email || "you@work.com");
+  }
+  // turn stored rows into what the page shows; encrypted ones are opened with the key, or shown as locked
+  async function openNotes(rows) {
+    return Promise.all(rows.map(async (n) => {
+      const base = { id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts), block_start: n.block_start != null ? Number(n.block_start) : null, edited_at: n.edited_at ? Number(n.edited_at) : null };
+      if (!otoCrypto.isEncrypted(n.text)) return base;
+      if (!enc.key) return Object.assign(base, { text: "", tag: null, locked: true });
+      try { const o = await otoCrypto.decryptThought(enc.key, n.text); return Object.assign(base, { text: o.text, tag: o.tag }); }
+      catch (e) { return Object.assign(base, { text: "", tag: null, locked: true }); }
+    }));
+  }
+  // what to send for a thought: encrypted when encryption is on
+  async function sealed(text, tag) {
+    if (!encOn()) return { text, tag };
+    if (!enc.key) throw new Error("locked");
+    return { text: await otoCrypto.encryptThought(enc.key, text, tag), tag: null };
+  }
+  // encrypt any thoughts still stored readable (after turning on, or if a run was interrupted)
+  async function encryptLeftovers(progress) {
+    if (enc.status !== "ready") return 0;
+    const plain = notes.filter((n) => !n.locked && !n._sealed && n.id && typeof n.id !== "number");
+    let done = 0;
+    for (const n of plain) {
+      await updateNote(session.access_token, n.id, await sealed(n.text, n.tag));
+      n._sealed = true; done++;
+      if (progress) progress(done, plain.length);
+    }
+    return done;
+  }
+
   function showLogin() { $("login").hidden = false; $("app").hidden = true; }
   function mcpConfig(email) {
-    return JSON.stringify({ mcpServers: { oto: { command: "node", args: ["/path/to/oto-mcp/index.js"], env: { OTO_EMAIL: email, OTO_PASSWORD: "your-oto-password" } } } }, null, 2);
+    const env = { OTO_EMAIL: email, OTO_PASSWORD: "your-oto-password" };
+    if (encOn()) env.OTO_PASSPHRASE = "your-notebook-passphrase";   // lets the connector open encrypted thoughts
+    return JSON.stringify({ mcpServers: { oto: { command: "node", args: ["/path/to/oto-mcp/index.js"], env } } }, null, 2);
   }
   function showApp(s) {
     $("login").hidden = true; $("app").hidden = false; $("acct").textContent = s.email || "";
@@ -384,6 +504,7 @@
     showApp(session);
     const d = new Date();
     $("date").textContent = `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    await refreshEnc();
     await Promise.all([loadNotes(), loadUsage()]);
     // keep the dashboard live (it was showing a stale snapshot vs the extension/desktop)
     if (!window._otoRefresh) {
@@ -395,7 +516,9 @@
   async function loadNotes() {
     try {
       const [raw, blockRows] = await Promise.all([listNotes(session.access_token), listBlocks(session.access_token)]);
-      notes = raw.map((n) => ({ id: n.id, text: n.text, tag: n.tag || null, ts: Number(n.ts), block_start: n.block_start != null ? Number(n.block_start) : null, edited_at: n.edited_at ? Number(n.edited_at) : null }));
+      notes = await openNotes(raw);
+      notes.forEach((n, i) => { n._sealed = otoCrypto.isEncrypted(raw[i].text); });
+      if (enc.status === "ready" && notes.some((n) => !n._sealed)) encryptLeftovers().catch(() => {});   // finish an interrupted run
       blockNames = {}; blockRows.forEach((b) => { if (b.name) blockNames[String(b.block_start)] = b.name; });
       tags = []; const seen = new Set();
       notes.forEach((n) => { if (n.tag && !seen.has(n.tag)) { seen.add(n.tag); tags.push(n.tag); } });
@@ -478,7 +601,7 @@
       if (day && dayKey(new Date(n.ts)) !== day) return false;
       if (block === "none" && n.block_start) return false;
       if (block && block !== "none" && String(n.block_start) !== block) return false;
-      if (q && !n.text.toLowerCase().includes(q)) return false;
+      if (q && (n.locked || !n.text.toLowerCase().includes(q))) return false;
       return true;
     });
   }
@@ -516,6 +639,11 @@
     catch (e) { toast("Couldn't save the block name."); }
   }
   function noteView(n) {
+    if (n.locked) return `
+      <div class="note locked" data-id="${n.id}">
+        <div class="when">${fmtDate(n.ts)}</div>
+        <div class="text">Encrypted thought. Unlock in Settings to read it.</div>
+      </div>`;
     return `
       <div class="note" data-id="${n.id}">
         <div class="note-actions">
@@ -543,11 +671,11 @@
     const n = notes.find((x) => String(x.id) === String(id)); if (!n) return;
     const edited_at = Date.now();
     try {
-      await updateNote(session.access_token, id, { text, tag, edited_at });
+      await updateNote(session.access_token, id, Object.assign(await sealed(text, tag), { edited_at }));
       n.text = text; n.tag = tag; n.edited_at = edited_at; editingId = null;
       tags = []; const seen = new Set(); notes.forEach((x) => { if (x.tag && !seen.has(x.tag)) { seen.add(x.tag); tags.push(x.tag); } });
       buildFilters(); renderNotes(); renderToday(); toast("Saved.");
-    } catch (e) { toast("Couldn't save — try again."); }
+    } catch (e) { toast(e.message === "locked" ? "Unlock your thoughts in Settings first." : "Couldn't save — try again."); }
   }
 
   async function keep(textId, tagId) {
@@ -555,10 +683,11 @@
     const text = el.value.trim(); if (!text) { el.focus(); return; }
     const tag = (tagEl.value || "").trim() || null;
     const ts = Date.now();
+    if (enc.status === "locked") { toast("Unlock your thoughts in Settings to keep new ones."); return; }
     el.value = ""; tagEl.value = "";
     try {
-      const row = await insertNote(session.access_token, { text, tag, ts });
-      notes.unshift({ id: (row && row.id) || ts, text, tag, ts, block_start: null });
+      const row = await insertNote(session.access_token, Object.assign(await sealed(text, tag), { ts }));
+      notes.unshift({ id: (row && row.id) || ts, text, tag, ts, block_start: null, _sealed: encOn() });
       if (tag && !tags.includes(tag)) { tags.unshift(tag); buildFilters(); }
       renderNotes(); renderToday(); toast("Kept.");
     } catch (e) { toast("Couldn't save — try again."); el.value = text; }
@@ -586,7 +715,48 @@
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("oto_web_theme", next); } catch (e) {}
   });
-  $("signOut").addEventListener("click", () => { clearSess(); notes = []; usage = null; showLogin(); });
+  $("signOut").addEventListener("click", () => { clearSess(); forgetKey(); enc.key = null; enc.status = "unknown"; notes = []; usage = null; showLogin(); });
+
+  // ---- encrypt my thoughts: turn on, unlock, lock ----
+  const encValid = () => $("encPass").value.length >= 8 && $("encPass").value === $("encPass2").value && $("encAck").checked;
+  ["encPass", "encPass2", "encAck"].forEach((id) => $(id).addEventListener("input", () => { $("encOnBtn").disabled = !encValid(); }));
+  $("encAck").addEventListener("change", () => { $("encOnBtn").disabled = !encValid(); });
+  $("encOn").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const m = $("encOnMsg"); m.classList.remove("bad");
+    if ($("encPass").value.length < 8) { m.textContent = "Use at least 8 characters."; m.classList.add("bad"); return; }
+    if ($("encPass").value !== $("encPass2").value) { m.textContent = "The two passphrases don't match."; m.classList.add("bad"); return; }
+    if (!$("encAck").checked) { m.textContent = "Tick the box to confirm there's no recovery."; m.classList.add("bad"); return; }
+    $("encOnBtn").disabled = true; m.textContent = "Setting up…";
+    try {
+      session = await validToken(); if (!session) { showLogin(); return; }
+      if (await getNoteLock(session.access_token)) { m.textContent = "Encryption is already on for this account. Unlock it instead."; await refreshEnc(); return; }
+      const { keyB64, lock } = await otoCrypto.createKey($("encPass").value);
+      await saveNoteLock(session.access_token, lock);   // from here the database refuses unencrypted thoughts
+      enc.lock = lock; enc.key = keyB64; enc.status = "ready"; storeKey(keyB64);
+      $("encPass").value = ""; $("encPass2").value = ""; $("encAck").checked = false;
+      const n = await encryptLeftovers((done, all) => { m.textContent = `Encrypting your thoughts: ${done} of ${all}…`; });
+      renderEnc(); renderNotes();
+      $("encReadyMsg").textContent = n ? `Done. ${n} ${n === 1 ? "thought" : "thoughts"} encrypted.` : "Done. New thoughts will be encrypted.";
+      m.textContent = ""; toast("Encrypted.");
+    } catch (err) {
+      m.classList.add("bad"); m.textContent = "Couldn't finish: " + (err.message || "try again") + ". Anything not yet encrypted will be finished next time you open oto here.";
+      await refreshEnc();
+    } finally { $("encOnBtn").disabled = !encValid(); }
+  });
+  $("encUnlock").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const m = $("encUnlockMsg"); m.classList.remove("bad"); m.textContent = "Unlocking…";
+    try {
+      const key = await otoCrypto.unlockKey(enc.lock, $("encUnlockPass").value);
+      enc.key = key; enc.status = "ready"; storeKey(key); $("encUnlockPass").value = ""; m.textContent = "";
+      renderEnc(); await loadNotes(); toast("Unlocked.");
+    } catch (err) { m.classList.add("bad"); m.textContent = err.message; }
+  });
+  $("encForget").addEventListener("click", async () => {
+    forgetKey(); enc.key = null; enc.status = "locked"; $("encReadyMsg").textContent = "";
+    renderEnc(); await loadNotes(); toast("Locked on this device.");
+  });
   $("mcpCopy").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("mcpCode").textContent); toast("Config copied."); } catch (e) { toast("Copy blocked — select manually."); } });
   // download the extension via a short-lived signed URL from a private Storage bucket (login-gated)
   async function downloadExtension() {
