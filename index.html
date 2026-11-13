@@ -169,6 +169,7 @@
 .waitform button{padding:13px 20px;border:0;border-radius:12px;background:var(--sky);color:#14110d;font-weight:600;font-size:15px;cursor:pointer}
 .waitform button:hover{background:#7fbce6}
 .join-note{min-height:20px;margin-top:14px;font-size:14px;color:var(--muted)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 </style>
 <section class="beat reveal" id="join">
   <div class="join">
@@ -176,6 +177,8 @@
     <p class="join-sub">Invite-only, rolling out slowly. Leave your email and we'll reach out.</p>
     <form id="waitForm" class="waitform" novalidate>
       <input id="waitEmail" type="email" required placeholder="you@work.com" autocomplete="email" aria-label="Email">
+      <!-- honeypot: hidden from people and screen readers; form-filling bots fill it in -->
+      <div class="hp" aria-hidden="true"><label for="waitCompany">Company</label><input id="waitCompany" name="company" type="text" tabindex="-1" autocomplete="off"></div>
       <button type="submit">Request access ↗</button>
     </form>
     <p class="join-note" id="waitNote" aria-live="polite"></p>
@@ -261,11 +264,18 @@
     const KEY = "sb_publishable_jwNMOq9RjNpLvjj4Vt205A_INzQXgtx";
     const f = document.getElementById("waitForm");
     if (!f) return;
+    const loadedAt = Date.now();
+    let tries = 0;
     f.addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = (document.getElementById("waitEmail").value || "").trim();
       const note = document.getElementById("waitNote");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { note.textContent = "Enter a valid email."; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) { note.textContent = "Enter a valid email."; return; }
+      // bot checks: the hidden field is filled in, or the form went in faster than a person could type.
+      // Show success so the bot moves on, but send nothing. Supabase enforces its own limits as well
+      // (see oto repo: supabase/waitlist-protection.sql), since bots can skip this page entirely.
+      if (document.getElementById("waitCompany").value || Date.now() - loadedAt < 2500) { note.textContent = "You're on the list — we'll be in touch."; f.reset(); return; }
+      if (++tries > 3) { note.textContent = "Thanks — we have your request."; return; }
       note.textContent = "Adding you…";
       try {
         const r = await fetch(SB + "/rest/v1/waitlist", {
@@ -275,6 +285,7 @@
         });
         if (r.ok || r.status === 201) { note.textContent = "You're on the list — we'll be in touch."; f.reset(); }
         else if (r.status === 409) { note.textContent = "You're already on the list."; }
+        else if (r.status === 429) { note.textContent = "Lots of requests right now. Try again in an hour."; }
         else { note.textContent = "Hmm, try again in a moment."; }
       } catch (err) { note.textContent = "Offline — try again in a moment."; }
     });
